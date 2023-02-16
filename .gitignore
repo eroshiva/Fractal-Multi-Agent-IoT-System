@@ -1,0 +1,9 @@
+build/_output/fractal-mas
+.idea
+.vscode
+*.o
+*.a
+.project
+.cproject
+.eclipse
+.settings/
