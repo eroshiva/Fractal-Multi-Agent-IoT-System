@@ -1,4 +1,5 @@
-build/_output/fractal-mas
+build/_output/*
+vendor
 .idea
 .vscode
 *.o
