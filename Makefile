@@ -11,8 +11,13 @@ build:
 	go mod vendor
 	go build -mod=vendor -o build/_output/fractal-mas ./cmd/fractal-mas
 
-bench: # @HELP benchmark the codebase
+# ToDo - build infrastructure with parsing around it..
+bench: # @HELP benchmark the codebase in classic way measure time of the function execution
 bench:
+
+# ToDo - build infrastructure with parsing around it..
+gobench: # @HELP benchmark the codebase with gobench
+gobench:
 	go test -v -bench=. ./... -count=100 -run=^# -benchtime=${BENCH_TIME} -benchmem
 	# there is a room to parse output of benchmarking and process graphically
 
@@ -26,7 +31,7 @@ linters: linters-install
 
 test: # @HELP test the codebase
 test: build linters
-	go test -race gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/...
+	go test -race -count=100 gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/...
 
 clean:: # @HELP remove all the build artifacts
 	rm -rf ./build/_output ./vendor
