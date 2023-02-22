@@ -17,7 +17,7 @@ func TestCreateSystemModel(t *testing.T) {
 	assert.Equal(t, systemModel.Depth, l)
 
 	// defining a maximum number of instances per application
-	var maxNumInstances = 15 // 15 instances per app
+	var maxNumInstances int32 = 15 // 15 instances per app
 	// defining list of application names
 	names := []string{"VI", "App#1", "App#2", "App#3", "App#4", "App#5", "App#6", "App#7",
 		"App#8", "App#9"}
@@ -37,15 +37,16 @@ func TestCreateSystemModel(t *testing.T) {
 
 func TestGenerateRandomSystemModel(t *testing.T) {
 	systemModel := &SystemModel{}
-
 	// defining input parameters
 	var l int32 = 4
 	// defining a maximum number of instances per application
-	var maxNumInstances = 15 // 15 instances per app
+	var maxNumInstances int32 = 15 // 15 instances per app
 	// defining list of application names
 	names := []string{"VI", "App#1", "App#2", "App#3", "App#4", "App#5", "App#6", "App#7",
 		"App#8", "App#9"}
-	systemModel.GenerateRandomSystemModel(l, names, maxNumInstances)
+	systemModel.InitializeSystemModel(maxNumInstances, l)
+	systemModel.CreateRandomApplications(names, maxNumInstances)
+	systemModel.GenerateSystemModel()
 	t.Logf("System model is\n%v", systemModel)
 
 	// check that the probabilities are of total 1
@@ -55,23 +56,24 @@ func TestGenerateRandomSystemModel(t *testing.T) {
 		t.Logf("%s has probability %v and deploys %v applications\n", k, v.Probability, v.Rules)
 	}
 	t.Logf("Total probabilities are %v\n", sum)
-	assert.Assert(t, sum <= float32(1))
+	assert.Assert(t, sum <= float32(1.0001)) // leaving .0001 as a possible overhead due to float32 operations..
 
-	for k, v := range systemModel.Layers {
-		t.Logf("Layer %v has %v deplyed applications\n%v", k, len(v.DeployedApps), v)
-	}
+	t.Logf("----------------------- Printing the output result of MAIS ----------------------\n")
+	systemModel.PrettyPrintApplications()
+	systemModel.PrettyPrintLayers()
 }
 
-func BenchmarkGenerateRandomSystemModel(b *testing.B) {
+func BenchmarkGenerateSystemModel(b *testing.B) {
 	systemModel := &SystemModel{}
-
 	// defining input parameters
 	var l int32 = 4
 	// defining a maximum number of instances per application
-	var maxNumInstances = 15 // 15 instances per app
+	var maxNumInstances int32 = 15 // 15 instances per app
 	// defining list of application names
 	names := []string{"VI", "App#1", "App#2", "App#3", "App#4", "App#5", "App#6", "App#7",
 		"App#8", "App#9"}
-	systemModel.GenerateRandomSystemModel(l, names, maxNumInstances)
+	systemModel.InitializeSystemModel(maxNumInstances, l)
+	systemModel.CreateRandomApplications(names, maxNumInstances)
+	systemModel.GenerateSystemModel()
 	//b.Logf("System model is\n%v", systemModel)
 }
