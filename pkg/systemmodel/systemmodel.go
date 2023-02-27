@@ -264,3 +264,13 @@ func (l *Layer) PrettyPrintLayer() {
 		}
 	}
 }
+
+// GetTotalNumberOfInstances gets total number of instances (i.e., nodes) in the SystemModel structure
+func (sm *SystemModel) GetTotalNumberOfInstances() int64 {
+	var total int64
+	for k := 1; k <= len(sm.Layers); k++ {
+		v := sm.Layers[int32(k)]
+		total += int64(len(v.Instances))
+	}
+	return total
+}
