@@ -2,6 +2,7 @@
 package draw
 
 import (
+	"fmt"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
@@ -12,16 +13,18 @@ import (
 
 // Draw structure holds all necessary information for plotting a figure of SystemModel
 type Draw struct {
-	Rendered       bool   // indicates whether a figure was rendered or not
-	OutputFileName string // an output file name, where the figure would be saved
-	FigureName     string // carries a figure name
-	XaxisName      string // carries X-axis name
-	YaxisName      string // carries Y-axis name
-	xmin           *int64 // optional: sets a minimum boundary for X-axis
-	xmax           *int64 // optional: sets a maximum boundary for X-axis
-	ymin           *int64 // optional: sets a minimum boundary for Y-axis
-	ymax           *int64 // optional: sets a maximum boundary for Y-axis
-	gridOn         bool   // enable grid on the figure
+	Rendered       bool      // indicates whether a figure was rendered or not
+	OutputFileName string    // an output file name, where the figure would be saved
+	FigureName     string    // carries a figure name
+	XaxisName      string    // carries X-axis name
+	YaxisName      string    // carries Y-axis name
+	xmin           *int64    // optional: sets a minimum boundary for X-axis
+	xmax           *int64    // optional: sets a maximum boundary for X-axis
+	ymin           *int64    // optional: sets a minimum boundary for Y-axis
+	ymax           *int64    // optional: sets a maximum boundary for Y-axis
+	gridOn         bool      // enable grid on the figure
+	XLength        vg.Length // sets length of an X-axis (in Inches, Cm or mm)
+	YLength        vg.Length // sets length of an Y-axis (in Inches, Cm or mm)
 }
 
 // InitializeDrawStruct initializes a Draw structure
@@ -31,7 +34,9 @@ func (d *Draw) InitializeDrawStruct() {
 	d.FigureName = ""
 	d.XaxisName = ""
 	d.YaxisName = ""
-	d.gridOn = true // enabling grid by default
+	d.gridOn = true          // enabling grid by default
+	d.XLength = 20 * vg.Inch // setting a default value
+	d.YLength = 20 * vg.Inch // setting a default value
 }
 
 // SetOutputFileName sets a filename of the rendered picture
@@ -74,10 +79,21 @@ func (d *Draw) SetYmax(ymax int64) {
 	*d.ymax = ymax
 }
 
+// SetXLength sets actual length of an X-axis in inches, cm or mm
+func (d *Draw) SetXLength(xl vg.Length) {
+	d.XLength = xl
+}
+
+// SetYLength sets actual length of an Y-axis in inches, cm or mm
+func (d *Draw) SetYLength(yl vg.Length) {
+	d.YLength = yl
+}
+
 // Coordinates is a structure that carries all information about the nodes and their coordinates in
 // the systemmodel.SystemModel structure
 type Coordinates struct {
 	Points map[string]*Coordinate // this map contains as a key Name of the node and it's coordinates..
+	Labels plotter.XYLabels       // this is to hold a name of the instance and plot it on the graph (per node)
 }
 
 // Coordinate structure is a hybrid structure between systemmodel.SystemModel and the custom plotter.XYer structure.
@@ -91,6 +107,7 @@ type Coordinate struct {
 // coordinates of each node
 func (ds *Coordinates) ConvertSystemModelToDrawStruct(sm *systemmodel.SystemModel) {
 	ds.Points = make(map[string]*Coordinate, sm.GetTotalNumberOfInstances())
+	//ds.Labels = make(plotter.XYLabels, 0)
 	for i := 1; i <= len(sm.Layers); i++ {
 		layer := sm.Layers[int32(i)]
 		j := 1
@@ -106,6 +123,9 @@ func (ds *Coordinates) ConvertSystemModelToDrawStruct(sm *systemmodel.SystemMode
 				Coordinates: data,
 			}
 			ds.Points[v.Name] = dp
+			// adding labels to figure
+			ds.Labels.XYs = append(ds.Labels.XYs, data[0])
+			ds.Labels.Labels = append(ds.Labels.Labels, v.Name)
 			j++
 		}
 	}
@@ -131,8 +151,17 @@ func (ds *Coordinates) ExtractPoints() []plotter.XYer {
 //	and the status (were coordinates (X, Y) already created?).
 func (d *Draw) DrawSystemModel(sm *systemmodel.SystemModel) error {
 
+	// Adjusting length of an x and Y axis
+	maxItemNumber := sm.GetTheGreatestNumberOfInstancesPerLayer()
+	d.XLength = 0.25 * vg.Centimeter * (4 / 3) * vg.Length(maxItemNumber)
+	if d.XLength < 20*vg.Inch {
+		d.XLength = 20 * vg.Inch
+	}
+
+	// creating new figure
 	p := plot.New()
 
+	// adding basic data to figure
 	p.Title.Text = d.FigureName
 	p.X.Label.Text = d.XaxisName
 	p.Y.Label.Text = d.YaxisName
@@ -167,20 +196,20 @@ func (d *Draw) DrawSystemModel(sm *systemmodel.SystemModel) error {
 		}
 	}
 
-	// extracting data points to plot on a figure
-	pts := ds.ExtractPoints()
-	pnts, err := plotutil.NewErrorPoints(plotutil.MedianAndMinMax, pts...)
+	// Adding labels to figure
+	labels, err := plotter.NewLabels(ds.Labels)
 	if err != nil {
 		return err
 	}
-	err = plotutil.AddScatters(p, d.FigureName, pnts)
+	p.Add(labels)
+
+	// adding points to figure
+	err = AddScattersSquare(p, ds.Points)
 	if err != nil {
 		return err
 	}
-	// using plot.GlyphBoxer to draw nodes in a figure
-	p.Add(plotter.NewGlyphBoxes())
-	// Save the plot to a PNG file. // ToDo - customize dimensions..
-	if err := p.Save(20*vg.Inch, 20*vg.Inch, "figures/"+d.OutputFileName+".png"); err != nil {
+	// Save the plot to a PNG file
+	if err := p.Save(d.XLength, d.YLength, "figures/"+d.OutputFileName+".png"); err != nil {
 		return err
 	}
 	d.Rendered = true
@@ -203,4 +232,85 @@ func createPoints(currentLevel int, levels int, itemNumber int, density int) plo
 	data[0].Y = float64(levels-currentLevel+1) * float64(100/levels)
 
 	return data
+}
+
+// AddScattersSquare adds a Scatter plotters to a plot.
+// The variadic arguments must be either strings
+// or plotter.XYers.  Each plotter.XYer is added to
+// the plot using the next color, and square glyph shape
+// via the Color and Shape functions. If a
+// plotter.XYer is immediately preceded by
+// a string then a legend entry is added to the plot
+// using the string as the name.
+//
+// If an error occurs then none of the plotters are added
+// to the plot, and the error is returned.
+func AddScattersSquare(plt *plot.Plot, vs ...interface{}) error {
+	var ps []plot.Plotter
+	var items []item1
+	var i int
+	for _, v := range vs {
+		switch t := v.(type) {
+		case map[string]*Coordinate:
+			for k, val := range t {
+				s, err := plotter.NewScatter(val.Coordinates)
+				if err != nil {
+					return err
+				}
+				if strings.Contains(k, "MAIS") {
+					s.Color = plotutil.Color(2)
+				} else if strings.HasPrefix(k, "VI") {
+					s.Color = plotutil.Color(1)
+				} else {
+					s.Color = plotutil.Color(0)
+				}
+				s.Shape = plotutil.Shape(6) // filled with color box
+				s.Radius = 0.25 * vg.Centimeter
+				i++
+				ps = append(ps, s)
+			}
+			// adding legend to the figure
+			// for MAIS
+			mais, err := plotter.NewScatter(t["MAIS"].Coordinates)
+			if err != nil {
+				return err
+			}
+			mais.Color = plotutil.Color(2) // setting a color to correspond to MAIS colour
+			mais.Shape = plotutil.Shape(6) // filled with color box
+			mais.Radius = 0.2 * vg.Centimeter
+			items = append(items, item1{name: "MAIS", value: mais})
+			// for VI
+			vi, err := plotter.NewScatter(t["MAIS"].Coordinates)
+			if err != nil {
+				return err
+			}
+			vi.Color = plotutil.Color(1) // setting a color to correspond to VI colour
+			vi.Shape = plotutil.Shape(6) // filled with color box
+			vi.Radius = 0.2 * vg.Centimeter
+			items = append(items, item1{name: "VI", value: vi})
+			// for App
+			app, err := plotter.NewScatter(t["MAIS"].Coordinates)
+			if err != nil {
+				return err
+			}
+			app.Color = plotutil.Color(0) // setting a color to correspond to App colour
+			app.Shape = plotutil.Shape(6) // filled with color box
+			app.Radius = 0.2 * vg.Centimeter
+			items = append(items, item1{name: "App", value: app})
+
+		default:
+			panic(fmt.Sprintf("plotutil: AddScattersSquare only map[string]*Coordinate type, got %T", t))
+		}
+	}
+	plt.Add(ps...)
+	for _, v := range items {
+		plt.Legend.Add(v.name, v.value)
+	}
+	return nil
+}
+
+// item1 type mimics type plotter.item - this is done to adjust function AddScatterSquare
+type item1 struct {
+	name  string
+	value plot.Thumbnailer
 }

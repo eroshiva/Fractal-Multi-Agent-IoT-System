@@ -274,3 +274,14 @@ func (sm *SystemModel) GetTotalNumberOfInstances() int64 {
 	}
 	return total
 }
+
+// GetTheGreatestNumberOfInstancesPerLayer gets the greatest number of instances per layer
+func (sm *SystemModel) GetTheGreatestNumberOfInstancesPerLayer() int64 {
+	var max int64
+	for k := 1; k <= len(sm.Layers); k++ {
+		if max < int64(len(sm.Layers[int32(k)].Instances)) {
+			max = int64(len(sm.Layers[int32(k)].Instances))
+		}
+	}
+	return max
+}
