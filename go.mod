@@ -3,6 +3,7 @@ module gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system
 go 1.19
 
 require (
+	github.com/spf13/cobra v1.6.1
 	gonum.org/v1/plot v0.12.0
 	gotest.tools v2.2.0+incompatible
 )
@@ -15,7 +16,9 @@ require (
 	github.com/go-pdf/fpdf v0.6.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/image v0.0.0-20220902085622-e7cb96979f69 // indirect
 	golang.org/x/text v0.3.7 // indirect
 )

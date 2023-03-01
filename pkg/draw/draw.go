@@ -1,4 +1,5 @@
 // Package draw implements a set of helper functions to draw SystemModel
+// Here are stored functions which manipulate with the internal structures and help to plot a figure
 package draw
 
 import (
@@ -28,65 +29,72 @@ type Draw struct {
 }
 
 // InitializeDrawStruct initializes a Draw structure
-func (d *Draw) InitializeDrawStruct() {
+func (d *Draw) InitializeDrawStruct() *Draw {
 	d.Rendered = false
-	d.OutputFileName = "Default"
-	d.FigureName = ""
-	d.XaxisName = ""
-	d.YaxisName = ""
-	d.gridOn = true          // enabling grid by default
-	d.XLength = 20 * vg.Inch // setting a default value
-	d.YLength = 20 * vg.Inch // setting a default value
+	d.gridOn = true // enabling grid by default
+	d.SetOutputFileName("Default").SetFigureName("").SetXaxisName("").
+		SetYaxisName("").SetXLength(20 * vg.Inch).SetYLength(20 * vg.Inch)
+	return d
 }
 
 // SetOutputFileName sets a filename of the rendered picture
-func (d *Draw) SetOutputFileName(fileName string) {
+func (d *Draw) SetOutputFileName(fileName string) *Draw {
 	d.OutputFileName = fileName
+	return d
 }
 
 // SetFigureName sets a filename of the rendered picture
-func (d *Draw) SetFigureName(fn string) {
+func (d *Draw) SetFigureName(fn string) *Draw {
 	d.FigureName = fn
+	return d
 }
 
 // SetXaxisName sets a filename of the rendered picture
-func (d *Draw) SetXaxisName(xname string) {
+func (d *Draw) SetXaxisName(xname string) *Draw {
 	d.XaxisName = xname
+	return d
 }
 
 // SetYaxisName sets a filename of the rendered picture
-func (d *Draw) SetYaxisName(yname string) {
+func (d *Draw) SetYaxisName(yname string) *Draw {
 	d.YaxisName = yname
+	return d
 }
 
 // SetXmin sets a minimum bound for an X-axis
-func (d *Draw) SetXmin(xmin int64) {
+func (d *Draw) SetXmin(xmin int64) *Draw {
 	*d.xmin = xmin
+	return d
 }
 
 // SetXmax sets a maximum bound for an X-axis
-func (d *Draw) SetXmax(xmax int64) {
+func (d *Draw) SetXmax(xmax int64) *Draw {
 	*d.xmax = xmax
+	return d
 }
 
 // SetYmin sets a minimum bound for an Y-axis
-func (d *Draw) SetYmin(ymin int64) {
+func (d *Draw) SetYmin(ymin int64) *Draw {
 	*d.ymin = ymin
+	return d
 }
 
 // SetYmax sets a maximum bound for an Y-axis
-func (d *Draw) SetYmax(ymax int64) {
+func (d *Draw) SetYmax(ymax int64) *Draw {
 	*d.ymax = ymax
+	return d
 }
 
 // SetXLength sets actual length of an X-axis in inches, cm or mm
-func (d *Draw) SetXLength(xl vg.Length) {
+func (d *Draw) SetXLength(xl vg.Length) *Draw {
 	d.XLength = xl
+	return d
 }
 
 // SetYLength sets actual length of an Y-axis in inches, cm or mm
-func (d *Draw) SetYLength(yl vg.Length) {
+func (d *Draw) SetYLength(yl vg.Length) *Draw {
 	d.YLength = yl
+	return d
 }
 
 // Coordinates is a structure that carries all information about the nodes and their coordinates in
@@ -109,7 +117,7 @@ func (ds *Coordinates) ConvertSystemModelToDrawStruct(sm *systemmodel.SystemMode
 	ds.Points = make(map[string]*Coordinate, sm.GetTotalNumberOfInstances())
 	//ds.Labels = make(plotter.XYLabels, 0)
 	for i := 1; i <= len(sm.Layers); i++ {
-		layer := sm.Layers[int32(i)]
+		layer := sm.Layers[i]
 		j := 1
 		for _, v := range layer.Instances {
 			// FIXME: this assignment of coordinates here may be a potential source of issues in the graph..
@@ -141,81 +149,6 @@ func (ds *Coordinates) ExtractPoints() []plotter.XYer {
 	return list
 }
 
-// DrawSystemModel draws a figure representing provided SystemModel. It is done in the following way:
-//
-//	Iterate over layers, over each node in the layer.
-//	Once you've reached a node, create its coordinates (X, Y). After that iterate over each related instance (connection) and
-//	create a coordinates (X, Y) for each relation. Then, add corresponding lines between the node and its relations.
-//	Next, iterate over the rest of the nodes.
-//	To avoid duplication of the nodes, create a custom structure, which carries coordinates (X, Y) information, name of the node (which is unique)
-//	and the status (were coordinates (X, Y) already created?).
-func (d *Draw) DrawSystemModel(sm *systemmodel.SystemModel) error {
-
-	// Adjusting length of an x and Y axis
-	maxItemNumber := sm.GetTheGreatestNumberOfInstancesPerLayer()
-	d.XLength = 0.25 * vg.Centimeter * (4 / 3) * vg.Length(maxItemNumber)
-	if d.XLength < 20*vg.Inch {
-		d.XLength = 20 * vg.Inch
-	}
-
-	// creating new figure
-	p := plot.New()
-
-	// adding basic data to figure
-	p.Title.Text = d.FigureName
-	p.X.Label.Text = d.XaxisName
-	p.Y.Label.Text = d.YaxisName
-
-	// enabling grid
-	if d.gridOn {
-		p.Add(plotter.NewGrid())
-	}
-
-	// converting SystemModel to plotter-friendly structure
-	ds := Coordinates{}
-	ds.ConvertSystemModelToDrawStruct(sm)
-
-	// adding lines between nodes
-	for i := 1; i <= len(sm.Layers); i++ {
-		layer := sm.Layers[int32(i)]
-		for _, v := range layer.Instances {
-			// creating a placeholder for a line
-			line := make(plotter.XYs, 2)
-			// extracting coordinates of the originate node
-			line[0].X, line[0].Y = ds.Points[v.Name].Coordinates.XY(0)
-			// iterating over relations
-			for _, val := range v.Relations {
-				// extracting coordinate of the child node
-				line[1].X, line[1].Y = ds.Points[val.Name].Coordinates.XY(0)
-				// adding a line to the graph
-				err := plotutil.AddLines(p, line)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	// Adding labels to figure
-	labels, err := plotter.NewLabels(ds.Labels)
-	if err != nil {
-		return err
-	}
-	p.Add(labels)
-
-	// adding points to figure
-	err = AddScattersSquare(p, ds.Points)
-	if err != nil {
-		return err
-	}
-	// Save the plot to a PNG file
-	if err := p.Save(d.XLength, d.YLength, "figures/"+d.OutputFileName+".png"); err != nil {
-		return err
-	}
-	d.Rendered = true
-	return nil
-}
-
 // createRootNodePoints creates a root node, MAIS
 func createRootNodePoints() plotter.XYs {
 	data := make(plotter.XYs, 1)
@@ -232,6 +165,12 @@ func createPoints(currentLevel int, levels int, itemNumber int, density int) plo
 	data[0].Y = float64(levels-currentLevel+1) * float64(100/levels)
 
 	return data
+}
+
+// item1 type mimics type plotter.item - this is done to adjust function AddScatterSquare
+type item1 struct {
+	name  string
+	value plot.Thumbnailer
 }
 
 // AddScattersSquare adds a Scatter plotters to a plot.
@@ -307,10 +246,4 @@ func AddScattersSquare(plt *plot.Plot, vs ...interface{}) error {
 		plt.Legend.Add(v.name, v.value)
 	}
 	return nil
-}
-
-// item1 type mimics type plotter.item - this is done to adjust function AddScatterSquare
-type item1 struct {
-	name  string
-	value plot.Thumbnailer
 }

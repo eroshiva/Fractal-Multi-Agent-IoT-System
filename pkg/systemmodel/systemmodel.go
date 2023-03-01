@@ -11,11 +11,11 @@ import (
 
 // SystemModel structure represents structure of the system model
 type SystemModel struct {
-	Depth  int32            // represents depth of the system model
-	Layers map[int32]*Layer // represents list of layers in the system model
+	Depth  int            // represents depth of the system model
+	Layers map[int]*Layer // represents list of layers in the system model
 	// a key for the Application can be whatever string you want (e.g., name of the application)
 	Applications map[string]*Application // represents a list of applications, which were deployed at this layer - this is to track all deployed applications over all layers
-	VIcount      *int64                  // this pointer is used to be passed to the various functions and change its value once VI is being deployed. This is done to distinguish various VIs on the same layer
+	VIcount      *uint64                 // this pointer is used to be passed to the various functions and change its value once VI is being deployed. This is done to distinguish various VIs on the same layer
 }
 
 // Layer structure represents the layer of the system model (e.g., Layer[3] corresponds to the 3-rd level of the SystemModel)
@@ -43,17 +43,17 @@ const (
 // Application structure defines initial set of rules for applications, probabilities of the application deployment and
 // carries a map of the deployed apps
 type Application struct {
-	Rules       int32   // number of instances that application can deploy
+	Rules       int     // number of instances that application can deploy
 	Probability float32 // probability of the application deployment
 	State       bool    // true for deployed, false for not deployed
 }
 
 // InitializeSystemModel initializes SystemModel with provided values
-func (sm *SystemModel) InitializeSystemModel(numApps int32, depth int32) {
+func (sm *SystemModel) InitializeSystemModel(numApps int, depth int) {
 	sm.Depth = depth
-	sm.Layers = make(map[int32]*Layer, depth)
+	sm.Layers = make(map[int]*Layer, depth)
 	sm.Applications = make(map[string]*Application, numApps)
-	viCount := int64(0)
+	viCount := uint64(0)
 	sm.VIcount = &viCount
 }
 
@@ -82,7 +82,7 @@ func (l *Layer) InitializeLayer() {
 }
 
 // AddLayer adds layer to the system model at a given level
-func (sm *SystemModel) AddLayer(layer *Layer, level int32) {
+func (sm *SystemModel) AddLayer(layer *Layer, level int) {
 	sm.Layers[level] = layer
 }
 
@@ -107,7 +107,7 @@ func CreateInstanceTypeApp() InstanceType {
 }
 
 // CreateApplication creates an application with given parameters and adds it to the list
-func (sm *SystemModel) CreateApplication(numInstances int32, probability float32, name string) {
+func (sm *SystemModel) CreateApplication(numInstances int, probability float32, name string) {
 	application := &Application{
 		Rules:       numInstances,
 		Probability: probability,
@@ -117,13 +117,17 @@ func (sm *SystemModel) CreateApplication(numInstances int32, probability float32
 }
 
 // CreateRandomApplications creates a set of applications with random parameters given the pre-defined names
-func (sm *SystemModel) CreateRandomApplications(names []string, maxNumInstances int32) {
+func (sm *SystemModel) CreateRandomApplications(names []string, minNumInstances int, maxNumInstances int) {
 	sm.Applications = make(map[string]*Application, len(names))
 	probabilitySum := float32(1)
 	for _, name := range names {
 		// generate random probability of the application deployment within a range
-		probability := rand.Float32() * probabilitySum     // consider using normal distribution with rang.NormFloat64()
-		numInstances := rand.Int31n(maxNumInstances-1) + 1 // it should deploy at least 1 instance
+		probability := rand.Float32() * probabilitySum // consider using normal distribution with rand.NormFloat64()
+		// taking care of the case when the only one instance resides within Application
+		var numInstances = 1
+		if maxNumInstances-minNumInstances > 0 {
+			numInstances = rand.Intn(maxNumInstances-minNumInstances) + minNumInstances
+		}
 		sm.CreateApplication(numInstances, probability, name)
 		probabilitySum -= probability
 	}
@@ -139,7 +143,7 @@ func (a *Application) DeployApplication() bool {
 
 // DeployApplications iterates over a map of Applications and checks, whether application is deployed or not.
 // It returns updated list of Applications, which denotes the updated state of applications
-func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel int32, viCount *int64) (bool, map[string]*Application) {
+func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel int, viCount *uint64) (bool, map[string]*Application) {
 	updatedApps := make(map[string]*Application, 0)
 	viWasDeployed := false
 
@@ -160,11 +164,11 @@ func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel
 					tp = CreateInstanceTypeVI()
 					*viCount++
 				}
-				for j := 1; int32(j) <= app.Rules; j++ {
+				for j := 1; j <= app.Rules; j++ {
 					appInstance := &Instance{}
 					name := appName + "-" + strconv.Itoa(j) + "-" + strconv.FormatInt(int64(currentLevel), 10)
 					if strings.HasPrefix(appName, "VI") {
-						name = "VI#" + strconv.FormatInt(*viCount, 10) + "-" + strconv.Itoa(j) + "-" + strconv.FormatInt(int64(currentLevel), 10)
+						name = "VI#" + strconv.FormatUint(*viCount, 10) + "-" + strconv.Itoa(j) + "-" + strconv.FormatInt(int64(currentLevel), 10)
 					}
 					appInstance.CreateInstance(name, tp)
 					i.AddRelation(appInstance)
@@ -179,7 +183,7 @@ func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel
 }
 
 // CreateLayer creates a layer of the SystemModel and updates the Applications list to reflect the current deployment state
-func (l *Layer) CreateLayer(apps map[string]*Application, currentLevel int32, viCount *int64) (map[string]*Application, *Layer) {
+func (l *Layer) CreateLayer(apps map[string]*Application, currentLevel int, viCount *uint64) (map[string]*Application, *Layer) {
 
 	nextLayer := &Layer{}
 	nextLayer.InitializeLayer()
@@ -206,13 +210,13 @@ func (l *Layer) CreateLayer(apps map[string]*Application, currentLevel int32, vi
 // GenerateSystemModel generates system model with regard to provided input data
 func (sm *SystemModel) GenerateSystemModel() {
 	sm.InitializeRootLayer()
-	for i := 2; int32(i) <= sm.Depth; i++ {
-		if sm.Layers[int32(i)-1].VIwasDeployed {
+	for i := 2; i <= sm.Depth; i++ {
+		if sm.Layers[i-1].VIwasDeployed {
 			var nextLayer *Layer
-			sm.Applications, nextLayer = sm.Layers[int32(i)-1].CreateLayer(sm.Applications, int32(i), sm.VIcount)
+			sm.Applications, nextLayer = sm.Layers[i-1].CreateLayer(sm.Applications, i, sm.VIcount)
 			// if something was deployed, then add Layer to the SystemModel, otherwise stop
 			if len(nextLayer.Instances) > 0 {
-				sm.AddLayer(nextLayer, int32(i))
+				sm.AddLayer(nextLayer, i)
 			} else {
 				break
 			}
@@ -245,7 +249,7 @@ func (sm *SystemModel) PrettyPrintApplications() {
 // PrettyPrintLayers prints Layers related information
 func (sm *SystemModel) PrettyPrintLayers() {
 	for k := 1; k <= len(sm.Layers); k++ {
-		v := sm.Layers[int32(k)]
+		v := sm.Layers[k]
 		fmt.Printf("----> Layer %v, VI deployed %v, Instances deployed %v, detailed info about deployed instances:\n", k, v.VIwasDeployed, len(v.Instances))
 		v.PrettyPrintLayer()
 	}
@@ -269,7 +273,7 @@ func (l *Layer) PrettyPrintLayer() {
 func (sm *SystemModel) GetTotalNumberOfInstances() int64 {
 	var total int64
 	for k := 1; k <= len(sm.Layers); k++ {
-		v := sm.Layers[int32(k)]
+		v := sm.Layers[k]
 		total += int64(len(v.Instances))
 	}
 	return total
@@ -279,9 +283,20 @@ func (sm *SystemModel) GetTotalNumberOfInstances() int64 {
 func (sm *SystemModel) GetTheGreatestNumberOfInstancesPerLayer() int64 {
 	var max int64
 	for k := 1; k <= len(sm.Layers); k++ {
-		if max < int64(len(sm.Layers[int32(k)].Instances)) {
-			max = int64(len(sm.Layers[int32(k)].Instances))
+		if max < int64(len(sm.Layers[k].Instances)) {
+			max = int64(len(sm.Layers[k].Instances))
 		}
 	}
 	return max
+}
+
+// GenerateAppNames generates Application names as a string composition of "App#" and its ordering number
+func GenerateAppNames(maxNumInstances int) []string {
+	res := make([]string, maxNumInstances+1)
+	res[0] = "VI"
+	for i := 1; i <= maxNumInstances; i++ {
+		res[i] = "App#" + strconv.FormatInt(int64(i), 10)
+	}
+
+	return res
 }
