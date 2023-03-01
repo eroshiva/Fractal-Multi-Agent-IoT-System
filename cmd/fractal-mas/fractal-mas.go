@@ -2,34 +2,105 @@
 package main
 
 import (
-	"fmt"
+	"github.com/spf13/cobra"
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/benchmarking"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/draw"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
+	"log"
+	"os"
 	"strconv"
 	"time"
 )
 
-func main() {
-	start := time.Now()
-	fmt.Println("Hello, World!")
-	duration := time.Since(start)
-	fmt.Printf("It took %d us to print previous message\n", duration.Microseconds())
+var depth int
+var appNumber int
+var iterations int
+var maxNumInstances int
 
+// The main entry point
+func main() {
+	if err := fractalMAIS().Execute(); err != nil {
+		println(err)
+		os.Exit(1)
+	}
+}
+
+// fractalMAIS implements a command line interface for Fractal MAS project
+func fractalMAIS() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "fractal-mas",
+		Short: "Fractal Multi-Agent System benchmarker",
+		RunE:  runFractalMAIS,
+	}
+	// adding flags - default values are false
+	cmd.PersistentFlags().Bool("example", false, "generates in a single run a random Fractal MAS and plots a figure of it")
+	cmd.PersistentFlags().Bool("benchmark", false, "performs a time complexity benchmarking of a Fractal MAS system model algorithm and ME-ERT-CORE algorithms")
+	cmd.PersistentFlags().Bool("hardcoded", false, "performs a hardcoded benchmarking (with hardcoded values")
+	cmd.PersistentFlags().Bool("benchFMAS", false, "performs a time complexity benchmarking of a Fractal MAS system model algorithm")
+	// ToDo - this is to be done in the near future..
+	cmd.PersistentFlags().Bool("benchMeErtCORE", false, "performs a time complexity benchmarking of a ME-ERT-CORE algorithms")
+	// ToDo - this is to be done in the near future..
+	//cmd.PersistentFlags().Bool("benchErtCORE", false, "performs a time complexity benchmarking of a ERT-CORE algorithms")
+	cmd.PersistentFlags().IntVar(&iterations, "iterations", 10000, "sets a number of iterations per single parameter set to perform")
+	cmd.PersistentFlags().IntVar(&depth, "depth", 4, "sets a depth of a system model")
+	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 10, "number of applications to be deployed")
+	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 10, "maximum number of instances to be deployed by application")
+	return cmd
+}
+
+// runFractalMAIS performs main logic of the CLI - either showcases an example System Model or performs benchmarking
+func runFractalMAIS(cmd *cobra.Command, args []string) error {
+	example, _ := cmd.Flags().GetBool("example")
+	benchmark, _ := cmd.Flags().GetBool("benchmark")
+	hardcoded, _ := cmd.Flags().GetBool("hardcoded")
+	benchFMAS, _ := cmd.Flags().GetBool("benchFMAS")
+	benchMeErtCORE, _ := cmd.Flags().GetBool("benchMeErtCORE")
+	//benchErtCORE, _ := cmd.Flags().GetBool("benchErtCORE")
+	// ToDo - do I need to read this flag or it is automaticall read from the CLI??? I guess, the latter
+	iterations, _ = cmd.Flags().GetInt("iterations")
+
+	log.Printf("Starting fractal-mas\nExample: %v\nBenchmarking: %v\n"+
+		"Hardcoded: %v\nBenchmark Fractal MAS: %v\nBenchmark ME-ERT-CORE: %v\n"+
+		"Depth: %v\nNumber of applications: %v\nMaximum number of instances per application: %v\n",
+		example, benchmark, hardcoded, benchFMAS, benchMeErtCORE,
+		depth, appNumber, maxNumInstances)
+
+	if example {
+		generateExampleSystemModel()
+	}
+	if benchmark {
+		// ToDo - parse SystemModel flags first..
+		benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
+		benchmarking.BenchMeErtCORE()
+	}
+	if benchFMAS && hardcoded {
+		benchmarking.BenchSystemModelNoParam()
+	}
+	if benchFMAS && !hardcoded {
+		benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
+	}
+	if benchMeErtCORE {
+		benchmarking.BenchMeErtCORE()
+	}
+	//if benchErtCORE {
+	//	benchmarking.BenchErtCORE()
+	//}
+
+	return nil
+}
+
+// generateExampleSystemModel generates System Model example
+func generateExampleSystemModel() {
 	// Generating a system Model
 	sm := systemmodel.SystemModel{}
-	var l int32 = 4
-	// defining a maximum number of instances per application
-	var maxNumInstances int32 = 15 // 15 instances per app
 	// defining list of application names
-	names := []string{"VI", "App#1", "App#2", "App#3", "App#4", "App#5", "App#6", "App#7",
-		"App#8", "App#9"}
-	sm.InitializeSystemModel(maxNumInstances, l)
-	sm.CreateRandomApplications(names, maxNumInstances)
-	start = time.Now()
+	names := systemmodel.GenerateAppNames(appNumber)
+	sm.InitializeSystemModel(appNumber, depth)
+	sm.CreateRandomApplications(names, 1, maxNumInstances)
+	start := time.Now()
 	sm.GenerateSystemModel()
-	duration = time.Since(start)
-	//sm.PrettyPrintLayers()
-	fmt.Printf("It took %d us to generate a random System Model\n", duration.Microseconds())
+	duration := time.Since(start)
+	log.Printf("It took %d us to generate a random System Model\n", duration.Microseconds())
 
 	// Drawing a figure of System Model
 	d := draw.Draw{}
@@ -41,5 +112,5 @@ func main() {
 		panic(err)
 	}
 	duration = time.Since(start)
-	fmt.Printf("It took %d us to draw a System Model Figure\n", duration.Microseconds())
+	log.Printf("It took %d us to draw a System Model Figure\n", duration.Microseconds())
 }

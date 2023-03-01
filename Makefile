@@ -12,13 +12,19 @@ build: # @HELP build the Go binaries and run all validations (default)
 	go mod vendor
 	go build -mod=vendor -o build/_output/fractal-mas ./cmd/fractal-mas
 
-# ToDo - write a unit test and a visualizer, after that think about the figure generation (where and how to store?)
+install: # @HELP install newly build package in a local environment - now it can be used as a local command
+install: build
+	cd cmd/fractal-mas/ && go install && cd ../../
+
 example: # @HELP runs a unit test, which generates a random system model and plots a graph to showcase it
 example: build
+	./build/_output/fractal-mas --example
+
 
 # ToDo - build infrastructure with parsing around it..
 bench: # @HELP benchmark the codebase in classic way measure time of the function execution
 bench: build
+	./build/_output/fractal-mas --benchFMAS --hardcoded
 
 # ToDo - build infrastructure with parsing around it..
 bench-with-Docker: # @HELP benchmark the codebase wrapped in a Docker container
@@ -42,9 +48,8 @@ test: # @HELP test the codebase
 test: build linters
 	go test -race -count=100 gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/...
 
-run: # @HELP runs compiled binary
-run: build
-	./build/_output/fractal-mas
+# @HELP runs compiled binary and generates an example of Fractal MAIS
+run: example
 
 clean: # @HELP remove all the build artifacts
 	rm -rf ./build/_output ./vendor
