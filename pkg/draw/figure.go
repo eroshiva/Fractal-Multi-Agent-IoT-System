@@ -2,7 +2,6 @@
 package draw
 
 import (
-	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/common"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
@@ -88,7 +87,8 @@ func (d *Draw) DrawSystemModel(sm *systemmodel.SystemModel) error {
 }
 
 // PlotTimeComplexities plots all measured data (i.e., produces various figures)
-func PlotTimeComplexities(tc map[common.MapKey]float64, maxDepth int, maxAppNumber int, maxNumInstancesPerApp int) error {
+func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxAppNumber int, maxNumInstancesPerApp int) error {
+	//func PlotTimeComplexities(tc map[common.MapKey]float64, maxDepth int, maxAppNumber int, maxNumInstancesPerApp int) error {
 	// Firstly, convert the data into simple (X,Y) thing.
 	// We want to plot and showcase following dependencies:
 	// 1) Time complexity of the System Model based on its depth
@@ -113,7 +113,7 @@ func PlotTimeComplexities(tc map[common.MapKey]float64, maxDepth int, maxAppNumb
 	for i := 1; i < maxDepth; i++ {
 		depthArr = append(depthArr, i)
 	}
-	lines := GetLinesForDepth(tc, depthArr, []int{1, 6}, []int{1, 10})
+	lines := GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{1, 10, 100})
 	err := depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func PlotTimeComplexities(tc map[common.MapKey]float64, maxDepth int, maxAppNumb
 	for appNumber := 1; appNumber < maxAppNumber; appNumber += 5 {
 		appArr = append(appArr, appNumber)
 	}
-	lines = GetLinesForAppNumber(tc, []int{3, 4, 7, 10}, appArr, []int{1, 10})
+	lines = GetLinesForAppNumber(tc, []int{3, 4, 5}, appArr, []int{1, 10, 100})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func PlotTimeComplexities(tc map[common.MapKey]float64, maxDepth int, maxAppNumb
 
 	depthFigure.SetOutputFileName("time-complexity-instances-per-app").SetFigureName("Time Complexity of Fractal MAS").
 		SetYaxisName("Time [ns]").SetXaxisName("Instances (per App) [-]")
-	lines = GetLinesForInstances(tc, []int{3, 4, 7, 10}, []int{1, 6}, []int{10, 100, 1000})
+	lines = GetLinesForInstances(tc, []int{3, 4, 5}, []int{1, 26, 51, 76, 96}, []int{1, 10, 100})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
@@ -184,7 +184,7 @@ func (d *Draw) PlotTimeComplexity(lines map[string]plotter.XYs) error {
 }
 
 // GetLinesForDepth returns (X,Y) coordinates for all provided data where X-axis is fixed to depth
-func GetLinesForDepth(tc map[common.MapKey]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
+func GetLinesForDepth(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
 	lines := make(map[string]plotter.XYs, 0)
 
 	for _, a := range appNumber {
@@ -193,11 +193,12 @@ func GetLinesForDepth(tc map[common.MapKey]float64, depth []int, appNumber []int
 			for _, d := range depth {
 				xy := plotter.XY{
 					X: float64(d),
-					Y: tc[common.MapKey{
-						Depth:     d,
-						AppNumber: a,
-						Instances: i,
-					}],
+					Y: tc[d][a][i],
+					//Y: tc[common.MapKey{
+					//	Depth:     d,
+					//	AppNumber: a,
+					//	Instances: i,
+					//}],
 				}
 				line = append(line, xy)
 			}
@@ -211,7 +212,7 @@ func GetLinesForDepth(tc map[common.MapKey]float64, depth []int, appNumber []int
 }
 
 // GetLinesForAppNumber returns (X,Y) coordinates for all provided data where X-axis is fixed to Apps number
-func GetLinesForAppNumber(tc map[common.MapKey]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
+func GetLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
 	lines := make(map[string]plotter.XYs, 0)
 
 	for _, d := range depth {
@@ -220,11 +221,12 @@ func GetLinesForAppNumber(tc map[common.MapKey]float64, depth []int, appNumber [
 			for _, a := range appNumber {
 				xy := plotter.XY{
 					X: float64(a),
-					Y: tc[common.MapKey{
-						Depth:     d,
-						AppNumber: a,
-						Instances: i,
-					}],
+					Y: tc[d][a][i],
+					//Y: tc[common.MapKey{
+					//	Depth:     d,
+					//	AppNumber: a,
+					//	Instances: i,
+					//}],
 				}
 				line = append(line, xy)
 			}
@@ -238,7 +240,7 @@ func GetLinesForAppNumber(tc map[common.MapKey]float64, depth []int, appNumber [
 }
 
 // GetLinesForInstances returns (X,Y) coordinates for all provided data where X-axis is fixed to Instances per App number
-func GetLinesForInstances(tc map[common.MapKey]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
+func GetLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
 	lines := make(map[string]plotter.XYs, 0)
 
 	for _, d := range depth {
@@ -247,11 +249,12 @@ func GetLinesForInstances(tc map[common.MapKey]float64, depth []int, appNumber [
 			for _, i := range instances {
 				xy := plotter.XY{
 					X: float64(i),
-					Y: tc[common.MapKey{
-						Depth:     d,
-						AppNumber: a,
-						Instances: i,
-					}],
+					Y: tc[d][a][i],
+					//Y: tc[common.MapKey{
+					//	Depth:     d,
+					//	AppNumber: a,
+					//	Instances: i,
+					//}],
 				}
 				line = append(line, xy)
 			}

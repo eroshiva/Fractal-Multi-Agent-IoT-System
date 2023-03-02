@@ -3,7 +3,6 @@
 package benchmarking
 
 import (
-	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/common"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/draw"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
@@ -13,42 +12,42 @@ import (
 
 var timer uint64
 
-// This map stores time needed to generate a System Model. Notation is:
-// map[key1]map[key3]map[key3]time
-// key1 is a system model depth
-// key2 is a number of the applications within a system
-// key3 is a maximum number of instances which one application can deploy
-var benchmarkedData map[common.MapKey]float64
-
 // BenchSystemModelNoParam function performs benchmarking of a Fractal MAS System Model and does not require input parameters
-func BenchSystemModelNoParam() {
+func BenchSystemModelNoParam() error {
 	// FIXME - change this parameters before actual benchmarking!!
 	// Setting number of iterations to perform on a single parameter set.
 	// The more the number is, the less is an error due to system resources fluctuation
-	numIterations := 1000
+	numIterations := 100
 	// setting maximum System Model depth
 	maxDepth := 5
 	// setting maximum number of applications in MAIS
-	maxAppNumber := 10
+	maxAppNumber := 51
 	// setting a power of maximum number of instances per Application (e.g., 3 corresponds to 10^3, thus algorithm
 	// would iterate over 10^0, 10^1, 10^2 and 10^3)
-	maxNumInstancesPerApp := 1
+	maxNumInstancesPerApp := 2
 
-	BenchSystemModel(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations)
+	err := BenchSystemModel(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // BenchSystemModel function performs benchmarking of a Fractal MAS System Model
-func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int) {
+func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int) error {
 	// initializing map
-	benchmarkedData = make(map[common.MapKey]float64, 0)
+	//benchmarkedData = make(map[common.MapKey]float64, 0)
+	benchmarkedData = make(map[int]map[int]map[int]float64, 0)
 	// iterating over the depth of the system
 	for depth := 1; depth <= maxDepth; depth++ {
+		benchmarkedData[depth] = make(map[int]map[int]float64, 0)
 		// iterating over the amount of apps in the system
 		for appNumber := 1; appNumber < maxAppNumber; appNumber += 5 {
+			benchmarkedData[depth][appNumber] = make(map[int]float64, 0)
 			// iterating over the range of the minimum and maximum number of instances deployed by application
 			for power := 0; power <= maxNumInstancesPerApp; power++ {
 				maxNumInstances := int(math.Pow10(power))
-				//log.Printf("10'000 iterations over Depth %v, App number %v, Number of instances %v\n", depth, appNumber, maxNumInstances)
+				log.Printf("%d iterations over Depth %v, App number %v, Number of instances %v\n", numIterations, depth, appNumber, maxNumInstances)
 				// setting timer to 0
 				timer = 0
 				for iteration := 0; iteration < numIterations; iteration++ {
@@ -64,13 +63,8 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 					// we know that it's going to be positive number
 					timer += uint64(duration.Nanoseconds()) // taking nanoseconds for better preciseness
 				}
-				//log.Printf("Benchmarked time is %v ns, measured %v ns in 10'000 operations\n", float64(timer)/float64(numIterations), timer)
-				key := common.MapKey{
-					Depth:     depth,
-					AppNumber: appNumber,
-					Instances: maxNumInstances,
-				}
-				benchmarkedData[key] = float64(timer) / float64(numIterations)
+				log.Printf("Benchmarked time is %v ns, measured %v ns in %d operations\n", float64(timer)/float64(numIterations), timer, numIterations)
+				benchmarkedData[depth][appNumber][maxNumInstances] = float64(timer) / float64(numIterations)
 			}
 		}
 	}
@@ -79,11 +73,28 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 	if err != nil {
 		log.Panicf("Something went wrong during benchmarking... %v\n", err)
 	}
+
+	err = exportDataToJSON("data/", "test", benchmarkedData, "", " ")
+	if err != nil {
+		log.Panicf("Something went wrong during storing of the data in JSON file... %v\n", err)
+		return err
+	}
+
+	err = exportDataToCSV("data/", "test", benchmarkedData, "Fractal MAS Depth [-]",
+		"Application Number in Fractal MAS [-]", "Maximum Number of Instances Deployed by Application [-]",
+		"Time [ns]")
+	if err != nil {
+		log.Panicf("Something went wrong during storing of the data in CSV file... %v\n", err)
+		return err
+	}
+
+	return nil
 }
 
 // BenchMeErtCORE function performs benchmarking of a ME-ERT-CORE reliability model
-func BenchMeErtCORE() {
+func BenchMeErtCORE() error {
 
+	return nil
 }
 
 // BenchErtCore is a placeholder for future implementation of ErtCore reliability model in Go
