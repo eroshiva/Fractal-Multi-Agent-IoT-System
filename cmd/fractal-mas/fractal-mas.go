@@ -56,7 +56,7 @@ func runFractalMAIS(cmd *cobra.Command, args []string) error {
 	benchFMAS, _ := cmd.Flags().GetBool("benchFMAS")
 	benchMeErtCORE, _ := cmd.Flags().GetBool("benchMeErtCORE")
 	//benchErtCORE, _ := cmd.Flags().GetBool("benchErtCORE")
-	// ToDo - do I need to read this flag or it is automaticall read from the CLI??? I guess, the latter
+	// ToDo - do I need to read this flag or it is automatically read from the CLI??? I guess, the latter
 	iterations, _ = cmd.Flags().GetInt("iterations")
 
 	log.Printf("Starting fractal-mas\nExample: %v\nBenchmarking: %v\n"+
@@ -70,20 +70,38 @@ func runFractalMAIS(cmd *cobra.Command, args []string) error {
 	}
 	if benchmark {
 		// ToDo - parse SystemModel flags first..
-		benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
-		benchmarking.BenchMeErtCORE()
+		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
+		if err != nil {
+			return err
+		}
+		err = benchmarking.BenchMeErtCORE()
+		if err != nil {
+			return err
+		}
 	}
 	if benchFMAS && hardcoded {
-		benchmarking.BenchSystemModelNoParam()
+		err := benchmarking.BenchSystemModelNoParam()
+		if err != nil {
+			return err
+		}
 	}
 	if benchFMAS && !hardcoded {
-		benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
+		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
+		if err != nil {
+			return err
+		}
 	}
 	if benchMeErtCORE {
-		benchmarking.BenchMeErtCORE()
+		err := benchmarking.BenchMeErtCORE()
+		if err != nil {
+			return err
+		}
 	}
 	//if benchErtCORE {
-	//	benchmarking.BenchErtCORE()
+	//	err := benchmarking.BenchErtCORE()
+	//	if err != nil {
+	//		return err
+	//	}
 	//}
 
 	return nil

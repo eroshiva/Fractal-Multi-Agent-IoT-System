@@ -21,7 +21,6 @@ example: build
 	./build/_output/fractal-mas --example
 
 
-# ToDo - build infrastructure with parsing around it..
 bench: # @HELP benchmark the codebase in classic way measure time of the function execution
 bench: build
 	./build/_output/fractal-mas --benchFMAS --hardcoded
