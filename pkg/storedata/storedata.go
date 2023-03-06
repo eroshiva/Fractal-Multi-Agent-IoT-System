@@ -1,21 +1,17 @@
-package benchmarking
+// Package storedata implements a set of utility functions, which are capable of importing/exporting data
+// from/to JSON or CSV file
+package storedata
 
 import (
 	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 )
-
-// This map stores time needed to generate a System Model. Notation is:
-// map[key1]map[key3]map[key3]time
-// key1 is a system model depth
-// key2 is a number of the applications within a system
-// key3 is a maximum number of instances which one application can deploy
-var benchmarkedData map[int]map[int]map[int]float64
 
 // exportDataToJSON stores generated during benchmarking data to JSON file
 func exportDataToJSON(path, filename string, data map[int]map[int]map[int]float64, prefix, indent string) error {
@@ -172,7 +168,8 @@ func importDataFromCSV(path, filename string) (map[int]map[int]map[int]float64, 
 	return data, nil
 }
 
-func saveData(benchmarkedData map[int]map[int]map[int]float64, name string) error {
+// SaveData saves data to a file (both, .csv and .json)
+func SaveData(benchmarkedData map[int]map[int]map[int]float64, name string) error {
 
 	err := exportDataToJSON("data/", name, benchmarkedData, "", " ")
 	if err != nil {
@@ -189,4 +186,45 @@ func saveData(benchmarkedData map[int]map[int]map[int]float64, name string) erro
 	}
 
 	return nil
+}
+
+// ImportData function imports data from a file
+func ImportData(path, fileName string) (map[int]map[int]map[int]float64, error) {
+
+	data := make(map[int]map[int]map[int]float64, 0)
+	var err error
+	if isJSON(fileName) {
+		// cutting out extension
+		fileName = strings.ReplaceAll(fileName, ".json", "")
+		data, err = importDataFromJSON(path, fileName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if isCSV(fileName) {
+		// cutting out extension
+		fileName = strings.ReplaceAll(fileName, ".csv", "")
+		data, err = importDataFromCSV(path, fileName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(data) == 0 {
+		return nil, fmt.Errorf("couldn't read file %v - either a bad descriptor, or"+
+			" unmatched extension (accepted only .csv and .json)\n", fileName)
+	}
+
+	return data, nil
+}
+
+// isJSON checks if file has .json extension
+func isJSON(name string) bool {
+	return strings.Contains(name, ".json")
+}
+
+// isCSV checks if file has .csv extension
+func isCSV(name string) bool {
+	return strings.Contains(name, ".csv")
 }

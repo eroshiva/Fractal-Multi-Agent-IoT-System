@@ -1,4 +1,4 @@
-package benchmarking
+package storedata
 
 import (
 	"gotest.tools/assert"
