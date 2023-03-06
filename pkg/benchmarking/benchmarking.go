@@ -3,10 +3,12 @@
 package benchmarking
 
 import (
+	"fmt"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/draw"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
 	"math"
+	"runtime"
 	"time"
 )
 
@@ -14,14 +16,13 @@ var timer uint64
 
 // BenchSystemModelNoParam function performs benchmarking of a Fractal MAS System Model and does not require input parameters
 func BenchSystemModelNoParam() error {
-	// FIXME - change this parameters before actual benchmarking!!
 	// Setting number of iterations to perform on a single parameter set.
 	// The more the number is, the less is an error due to system resources fluctuation
-	numIterations := 100
+	numIterations := 25000
 	// setting maximum System Model depth
-	maxDepth := 5
+	maxDepth := 4
 	// setting maximum number of applications in MAIS
-	maxAppNumber := 51
+	maxAppNumber := 101
 	// setting a power of maximum number of instances per Application (e.g., 3 corresponds to 10^3, thus algorithm
 	// would iterate over 10^0, 10^1, 10^2 and 10^3)
 	maxNumInstancesPerApp := 2
@@ -35,8 +36,12 @@ func BenchSystemModelNoParam() error {
 
 // BenchSystemModel function performs benchmarking of a Fractal MAS System Model
 func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int) error {
+	// initializing some variables to gather statistics
+	var maxNumIncs int64 = -1
+	var appMax, depthMax, instMax int64
+	var allocBytes uint64
+	var allocAppMax, allocDepthMax, allocInstMax, allocTotalInstances int64
 	// initializing map
-	//benchmarkedData = make(map[common.MapKey]float64, 0)
 	benchmarkedData = make(map[int]map[int]map[int]float64, 0)
 	// iterating over the depth of the system
 	for depth := 1; depth <= maxDepth; depth++ {
@@ -60,32 +65,48 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 					start := time.Now()
 					sm.GenerateSystemModel()
 					duration := time.Since(start)
-					// we know that it's going to be positive number
-					timer += uint64(duration.Nanoseconds()) // taking nanoseconds for better preciseness
+					// we know that it's going to be a positive number
+					timer += uint64(duration.Microseconds()) // taking microseconds
+
+					// gather some statistics
+					// allocated bytes per this run
+					bb := gatherAllocatedBytesSizeInMb()
+					if allocBytes < bb {
+						allocBytes = bb
+						allocAppMax = int64(appNumber)
+						allocDepthMax = int64(depth)
+						allocInstMax = int64(maxNumInstances)
+						allocTotalInstances = sm.GetTotalNumberOfInstances()
+					}
+					incs := sm.GetTotalNumberOfInstances()
+					if maxNumIncs < incs {
+						maxNumIncs = incs
+						appMax = int64(appNumber)
+						depthMax = int64(depth)
+						instMax = int64(maxNumInstances)
+					}
 				}
-				log.Printf("Benchmarked time is %v ns, measured %v ns in %d operations\n", float64(timer)/float64(numIterations), timer, numIterations)
+				log.Printf("Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer)/float64(numIterations), timer, numIterations)
 				benchmarkedData[depth][appNumber][maxNumInstances] = float64(timer) / float64(numIterations)
 			}
 		}
 	}
-	//log.Printf("Gathered data are:\n%v\n", benchmarkedData)
-	err := draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp)
+	log.Printf("Maximum number of instances is %v. It was for depth %v, number applications %v, instances per app %v.\n",
+		maxNumIncs, depthMax, appMax, instMax)
+	log.Printf("Maximum amount of allocated memory is %v MB. It was for depth %v, number applications %v, instances per app %v."+
+		" Number of instances at this point was %v.\n",
+		allocBytes, allocDepthMax, allocAppMax, allocInstMax, allocTotalInstances)
+
+	// get current time to format a filename
+	ct := time.Now()
+	err := saveData(benchmarkedData, "benchmark_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
 	if err != nil {
-		log.Panicf("Something went wrong during benchmarking... %v\n", err)
+		log.Panicf("Something went wrong when storing bechmarked data... %v\n", err)
 	}
 
-	err = exportDataToJSON("data/", "test", benchmarkedData, "", " ")
+	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp)
 	if err != nil {
-		log.Panicf("Something went wrong during storing of the data in JSON file... %v\n", err)
-		return err
-	}
-
-	err = exportDataToCSV("data/", "test", benchmarkedData, "Fractal MAS Depth [-]",
-		"Application Number in Fractal MAS [-]", "Maximum Number of Instances Deployed by Application [-]",
-		"Time [ns]")
-	if err != nil {
-		log.Panicf("Something went wrong during storing of the data in CSV file... %v\n", err)
-		return err
+		log.Panicf("Something went wrong during plotting of the results of benchmarking... %v\n", err)
 	}
 
 	return nil
@@ -101,3 +122,26 @@ func BenchMeErtCORE() error {
 //func BenchErtCore () {
 //
 //}
+
+func gatherAllocatedBytesSizeInMb() uint64 {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	return m.Alloc / 1024 / 1024
+}
+
+// PrintMemUsage outputs the current, total and OS memory being used. As well as the number
+// of garage collection cycles completed.
+func PrintMemUsage() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	// For info on each, see: https://golang.org/pkg/runtime/#MemStats
+	fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
+	fmt.Printf("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
+	fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
+	fmt.Printf("\tNumGC = %v\n", m.NumGC)
+}
+
+func bToMb(b uint64) uint64 {
+	return b / 1024 / 1024
+}
