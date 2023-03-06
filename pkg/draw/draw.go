@@ -238,7 +238,60 @@ func AddScattersSquare(plt *plot.Plot, vs ...interface{}) error {
 			items = append(items, item1{name: "App", value: app})
 
 		default:
-			panic(fmt.Sprintf("plotutil: AddScattersSquare only map[string]*Coordinate type, got %T", t))
+			panic(fmt.Sprintf("plotutil: AddScattersSquare accepts only map[string]*Coordinate type, got %T", t))
+		}
+	}
+	plt.Add(ps...)
+	for _, v := range items {
+		plt.Legend.Add(v.name, v.value)
+	}
+	return nil
+}
+
+// AddScattersAndLines function adds a Scatter and a Line plotters to a plot.
+// The variadic arguments must be either strings
+// or plotter.XYers.  Each plotter.XYer is added to
+// the plot using the next color, and square glyph shape
+// via the Color and Shape functions. If a
+// plotter.XYer is immediately preceded by
+// a string then a legend entry is added to the plot
+// using the string as the name.
+//
+// If an error occurs then none of the plotters are added
+// to the plot, and the error is returned.
+func AddScattersAndLines(plt *plot.Plot, vs ...interface{}) error {
+	var ps []plot.Plotter
+	var items []item1
+	var i int
+	for _, v := range vs {
+		switch t := v.(type) {
+		case map[string]plotter.XYs:
+			for k, val := range t {
+				sc, err := plotter.NewScatter(val)
+				if err != nil {
+					return err
+				}
+				sc.Color = plotutil.Color(i)
+				sc.Shape = plotutil.Shape(i)
+				ps = append(ps, sc)
+
+				l, err := plotter.NewLine(val)
+				if err != nil {
+					return err
+				}
+				l.Color = plotutil.Color(i)
+				l.Dashes = plotutil.Dashes(i)
+				ps = append(ps, l)
+
+				// adding a legend
+				items = append(items, item1{name: k, value: l})
+
+				// incrementing a value (responsible for different color, shape (i.c.o. Scatters) and dash type (i.c.o. Line)
+				i++
+			}
+
+		default:
+			panic(fmt.Sprintf("plotutil: AddScattersAndLines accepts only map[string]*plotter.XYs type, got %T", t))
 		}
 	}
 	plt.Add(ps...)

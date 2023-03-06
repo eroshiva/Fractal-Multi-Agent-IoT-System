@@ -36,6 +36,10 @@ gobench: build
 	go test -v -bench=. ./... -count=100 -run=^# -benchtime=${BENCH_TIME} -benchmem
 	# there is a room to parse output of benchmarking and process graphically
 
+generate_figures: # @HELP generates figures based on the benchmarked data. It needs an exact name of the file carrying data!
+generate_figures: build
+	./build/_output/fractal-mas --generateFigures benchmark_2023-03-06_20:46:13.csv
+
 linters-install: # @HELP install linters locally for verification
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin ${GOLANGCI_LINTERS_VERSION}
 

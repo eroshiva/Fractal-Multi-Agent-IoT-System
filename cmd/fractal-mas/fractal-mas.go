@@ -16,6 +16,7 @@ var depth int
 var appNumber int
 var iterations int
 var maxNumInstances int
+var benchFiles string
 
 // The main entry point
 func main() {
@@ -45,6 +46,7 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().IntVar(&depth, "depth", 4, "sets a depth of a system model")
 	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 100, "number of applications to be deployed")
 	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 100, "maximum number of instances to be deployed by application")
+	cmd.PersistentFlags().StringVar(&benchFiles, "generateFigures", "benchmarked_*.json", "generates figures based on the provided benchmarked data")
 	return cmd
 }
 
@@ -58,12 +60,14 @@ func runFractalMAIS(cmd *cobra.Command, args []string) error {
 	//benchErtCORE, _ := cmd.Flags().GetBool("benchErtCORE")
 	// ToDo - do I need to read this flag or it is automatically read from the CLI??? I guess, the latter
 	iterations, _ = cmd.Flags().GetInt("iterations")
+	benchFiles, _ = cmd.Flags().GetString("generateFigures")
 
 	log.Printf("Starting fractal-mas\nExample: %v\nBenchmarking: %v\n"+
 		"Hardcoded: %v\nBenchmark Fractal MAS: %v\nBenchmark ME-ERT-CORE: %v\n"+
-		"Depth: %v\nNumber of applications: %v\nMaximum number of instances per application: %v\n",
+		"Depth: %v\nNumber of applications: %v\nMaximum number of instances per application: %v\n"+
+		"Data file provided: %v\n",
 		example, benchmark, hardcoded, benchFMAS, benchMeErtCORE,
-		depth, appNumber, maxNumInstances)
+		depth, appNumber, maxNumInstances, benchFiles)
 
 	if example {
 		generateExampleSystemModel()
@@ -103,6 +107,13 @@ func runFractalMAIS(cmd *cobra.Command, args []string) error {
 	//		return err
 	//	}
 	//}
+
+	if benchFiles != "" {
+		err := draw.PlotFigures(benchFiles)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

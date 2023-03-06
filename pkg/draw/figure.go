@@ -2,6 +2,7 @@
 package draw
 
 import (
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/storedata"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/plotter"
@@ -154,23 +155,10 @@ func (d *Draw) PlotTimeComplexity(lines map[string]plotter.XYs) error {
 	// adding grid
 	p.Add(plotter.NewGrid())
 
-	for k, v := range lines {
-		// creating a set of points
-		pts, err := plotter.NewScatter(v)
-		if err != nil {
-			return err
-		}
-		// adding points to the figure
-		err = plotutil.AddScatters(p, "", pts)
-		if err != nil {
-			return err
-		}
-		// ToDo - reimplement it through the plotter.Function{} interface - it will allow to customize the line color and etc..
-		// adding lines to the figure
-		err = plotutil.AddLines(p, k, pts)
-		if err != nil {
-			return err
-		}
+	// adding plotters for gathered lines to the figure
+	err := AddScattersAndLines(p, lines)
+	if err != nil {
+		return nil
 	}
 
 	// Save the plot to a PNG file
@@ -194,11 +182,6 @@ func GetLinesForDepth(tc map[int]map[int]map[int]float64, depth []int, appNumber
 				xy := plotter.XY{
 					X: float64(d),
 					Y: tc[d][a][i],
-					//Y: tc[common.MapKey{
-					//	Depth:     d,
-					//	AppNumber: a,
-					//	Instances: i,
-					//}],
 				}
 				line = append(line, xy)
 			}
@@ -222,11 +205,6 @@ func GetLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNu
 				xy := plotter.XY{
 					X: float64(a),
 					Y: tc[d][a][i],
-					//Y: tc[common.MapKey{
-					//	Depth:     d,
-					//	AppNumber: a,
-					//	Instances: i,
-					//}],
 				}
 				line = append(line, xy)
 			}
@@ -250,11 +228,6 @@ func GetLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 				xy := plotter.XY{
 					X: float64(i),
 					Y: tc[d][a][i],
-					//Y: tc[common.MapKey{
-					//	Depth:     d,
-					//	AppNumber: a,
-					//	Instances: i,
-					//}],
 				}
 				line = append(line, xy)
 			}
@@ -267,7 +240,25 @@ func GetLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 	return lines
 }
 
-// AddPlotter function adds a Scatter and a Line plotters to the figure
-func AddPlotter() {
+// PlotFigures function plots a figures for SystemModel for a provided data in file called fileName
+func PlotFigures(fileName string) error {
 
+	// ToDo - make a workaround with relative path..
+	// read the data first
+	data, err := storedata.ImportData("data/", fileName)
+	if err != nil {
+		return err
+	}
+	// parse SystemModel data
+	depth, apps, instances, err := systemmodel.GetSystemModelParameters(data)
+	if err != nil {
+		return nil
+	}
+	// plot figures
+	err = PlotTimeComplexities(data, depth, apps, instances)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

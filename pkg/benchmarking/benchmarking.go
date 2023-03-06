@@ -5,6 +5,7 @@ package benchmarking
 import (
 	"fmt"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/draw"
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/storedata"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
 	"math"
@@ -14,11 +15,18 @@ import (
 
 var timer uint64
 
+// This map stores time needed to generate a System Model. Notation is:
+// map[key1]map[key3]map[key3]time
+// key1 is a system model depth
+// key2 is a number of the applications within a system
+// key3 is a maximum number of instances which one application can deploy
+var benchmarkedData map[int]map[int]map[int]float64
+
 // BenchSystemModelNoParam function performs benchmarking of a Fractal MAS System Model and does not require input parameters
 func BenchSystemModelNoParam() error {
 	// Setting number of iterations to perform on a single parameter set.
 	// The more the number is, the less is an error due to system resources fluctuation
-	numIterations := 25000
+	numIterations := 100
 	// setting maximum System Model depth
 	maxDepth := 4
 	// setting maximum number of applications in MAIS
@@ -99,7 +107,7 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 
 	// get current time to format a filename
 	ct := time.Now()
-	err := saveData(benchmarkedData, "benchmark_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
+	err := storedata.SaveData(benchmarkedData, "benchmark_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
 	if err != nil {
 		log.Panicf("Something went wrong when storing bechmarked data... %v\n", err)
 	}

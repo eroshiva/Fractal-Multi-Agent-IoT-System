@@ -300,3 +300,33 @@ func GenerateAppNames(maxNumInstances int) []string {
 
 	return res
 }
+
+// GetSystemModelParameters iterates over a provided data variable (assuming that it is a benchmarked data) and
+// determines maximum Depth, maximum Applications number and maximum number of Instances (all defined as input data for SystemModel)
+func GetSystemModelParameters(data map[int]map[int]map[int]float64) (int, int, int, error) {
+
+	var depth, apps, instances int
+
+	for k, v := range data {
+		for k1, v1 := range v {
+			for k2 := range v1 {
+				if instances < k2 {
+					instances = k2
+				}
+			}
+			if apps < k1 {
+				apps = k1
+			}
+		}
+		if depth < k {
+			depth = k
+		}
+	}
+
+	if depth == 0 || apps == 0 || instances == 0 {
+		return -1, -1, -1, fmt.Errorf("something went wrong during determination os SystemModel parameters - "+
+			"probably empty data were passed: %v\n", data)
+	}
+
+	return depth, apps, instances, nil
+}
