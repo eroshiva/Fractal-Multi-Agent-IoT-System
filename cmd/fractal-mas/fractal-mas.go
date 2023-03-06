@@ -41,10 +41,10 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().Bool("benchMeErtCORE", false, "performs a time complexity benchmarking of a ME-ERT-CORE algorithms")
 	// ToDo - this is to be done in the near future..
 	//cmd.PersistentFlags().Bool("benchErtCORE", false, "performs a time complexity benchmarking of a ERT-CORE algorithms")
-	cmd.PersistentFlags().IntVar(&iterations, "iterations", 10000, "sets a number of iterations per single parameter set to perform")
+	cmd.PersistentFlags().IntVar(&iterations, "iterations", 100, "sets a number of iterations per single parameter set to perform")
 	cmd.PersistentFlags().IntVar(&depth, "depth", 4, "sets a depth of a system model")
-	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 10, "number of applications to be deployed")
-	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 10, "maximum number of instances to be deployed by application")
+	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 100, "number of applications to be deployed")
+	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 100, "maximum number of instances to be deployed by application")
 	return cmd
 }
 

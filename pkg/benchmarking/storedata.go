@@ -171,3 +171,22 @@ func importDataFromCSV(path, filename string) (map[int]map[int]map[int]float64, 
 
 	return data, nil
 }
+
+func saveData(benchmarkedData map[int]map[int]map[int]float64, name string) error {
+
+	err := exportDataToJSON("data/", name, benchmarkedData, "", " ")
+	if err != nil {
+		log.Panicf("Something went wrong during storing of the data in JSON file... %v\n", err)
+		return err
+	}
+
+	err = exportDataToCSV("data/", name, benchmarkedData, "Fractal MAS Depth [-]",
+		"Application Number in Fractal MAS [-]", "Maximum Number of Instances Deployed by Application [-]",
+		"Time [ns]")
+	if err != nil {
+		log.Panicf("Something went wrong during storing of the data in CSV file... %v\n", err)
+		return err
+	}
+
+	return nil
+}
