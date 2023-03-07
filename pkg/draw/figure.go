@@ -127,7 +127,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	for appNumber := 1; appNumber < maxAppNumber; appNumber += 5 {
 		appArr = append(appArr, appNumber)
 	}
-	lines = GetLinesForAppNumber(tc, []int{3, 4, 5}, appArr, []int{1, 10, 100})
+	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{1, 10, 100})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
@@ -135,7 +135,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 
 	depthFigure.SetOutputFileName("time-complexity-instances-per-app").SetFigureName("Time Complexity of Fractal MAS").
 		SetYaxisName("Time [ns]").SetXaxisName("Instances (per App) [-]")
-	lines = GetLinesForInstances(tc, []int{3, 4, 5}, []int{1, 26, 51, 76, 96}, []int{1, 10, 100})
+	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{1, 26, 51, 76, 96}, []int{1, 10, 100})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
