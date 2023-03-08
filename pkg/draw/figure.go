@@ -108,34 +108,78 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	// plotting time complexity dependency based on depth
 	depthFigure := Draw{}
 	depthFigure.InitializeDrawStruct()
-	depthFigure.SetOutputFileName("time-complexity-depth").SetFigureName("Time Complexity of Fractal MAS").
-		SetYaxisName("Time [ns]").SetXaxisName("Depth [-]")
+	depthFigure.SetOutputFileName("time-complexity-depth-10-inst").SetFigureName("Time Complexity of Fractal MAS for 10 instances per App").
+		SetYaxisName("Time [us]").SetXaxisName("Depth [-]")
 	var depthArr []int
-	for i := 1; i < maxDepth; i++ {
+	for i := 1; i <= maxDepth; i++ {
 		depthArr = append(depthArr, i)
 	}
-	lines := GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{1, 10, 100})
+	lines := GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{10})
 	err := depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-apps-number").SetFigureName("Time Complexity of Fractal MAS").
-		SetYaxisName("Time [ns]").SetXaxisName("Apps number [-]")
-	// iterating over the amount of apps in the system
-	var appArr []int
-	for appNumber := 1; appNumber < maxAppNumber; appNumber += 5 {
-		appArr = append(appArr, appNumber)
-	}
-	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{1, 10, 100})
+	depthFigure.SetOutputFileName("time-complexity-depth-100-inst").SetFigureName("Time Complexity of Fractal MAS for 100 instances per App")
+	lines = GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{100})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-instances-per-app").SetFigureName("Time Complexity of Fractal MAS").
-		SetYaxisName("Time [ns]").SetXaxisName("Instances (per App) [-]")
-	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{1, 26, 51, 76, 96}, []int{1, 10, 100})
+	//////// plotting dependencies for applications number
+	depthFigure.SetOutputFileName("time-complexity-apps-number-10-inst").SetFigureName("Time Complexity of Fractal MAS for 10 instances per App").
+		SetYaxisName("Time [us]").SetXaxisName("Apps number [-]")
+	// iterating over the amount of apps in the system
+	var appArr []int
+	for appNumber := 1; appNumber <= maxAppNumber; appNumber += 5 {
+		appArr = append(appArr, appNumber)
+	}
+	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{10})
+	err = depthFigure.PlotTimeComplexity(lines)
+	if err != nil {
+		return err
+	}
+
+	depthFigure.SetOutputFileName("time-complexity-apps-number-100-inst").SetFigureName("Time Complexity of Fractal MAS for 100 instances per App")
+	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{100})
+	err = depthFigure.PlotTimeComplexity(lines)
+	if err != nil {
+		return err
+	}
+
+	depthFigure.SetOutputFileName("time-complexity-apps-number-1-inst").SetFigureName("Time Complexity of Fractal MAS for 1 instances per App")
+	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{1})
+	err = depthFigure.PlotTimeComplexity(lines)
+	if err != nil {
+		return err
+	}
+
+	//////// plotting dependencies for instances per application
+	depthFigure.SetOutputFileName("time-complexity-instances-per-app-26-apps").SetFigureName("Time Complexity of Fractal MAS for 26 Apps in MAIS").
+		SetYaxisName("Time [us]").SetXaxisName("Instances (per App) [-]")
+	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{26}, []int{1, 10, 100})
+	err = depthFigure.PlotTimeComplexity(lines)
+	if err != nil {
+		return err
+	}
+
+	depthFigure.SetOutputFileName("time-complexity-instances-per-app-56-apps").SetFigureName("Time Complexity of Fractal MAS for 56 Apps in MAIS")
+	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{56}, []int{1, 10, 100})
+	err = depthFigure.PlotTimeComplexity(lines)
+	if err != nil {
+		return err
+	}
+
+	depthFigure.SetOutputFileName("time-complexity-instances-per-app-96-apps").SetFigureName("Time Complexity of Fractal MAS for 96 Apps in MAIS")
+	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{96}, []int{1, 10, 100})
+	err = depthFigure.PlotTimeComplexity(lines)
+	if err != nil {
+		return err
+	}
+
+	depthFigure.SetOutputFileName("time-complexity-instances-per-app-1-apps").SetFigureName("Time Complexity of Fractal MAS for 1 App in MAIS")
+	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{1}, []int{1, 10, 100})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err

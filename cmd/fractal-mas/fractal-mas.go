@@ -46,7 +46,7 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().IntVar(&depth, "depth", 4, "sets a depth of a system model")
 	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 100, "number of applications to be deployed")
 	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 100, "maximum number of instances to be deployed by application")
-	cmd.PersistentFlags().StringVar(&benchFiles, "generateFigures", "benchmarked_*.json", "generates figures based on the provided benchmarked data")
+	cmd.PersistentFlags().StringVar(&benchFiles, "generateFigures", "", "generates figures based on the provided benchmarked data")
 	return cmd
 }
 

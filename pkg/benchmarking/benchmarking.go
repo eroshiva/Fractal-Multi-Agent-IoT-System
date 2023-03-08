@@ -8,7 +8,6 @@ import (
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/storedata"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
-	"math"
 	"runtime"
 	"time"
 )
@@ -26,14 +25,13 @@ var benchmarkedData map[int]map[int]map[int]float64
 func BenchSystemModelNoParam() error {
 	// Setting number of iterations to perform on a single parameter set.
 	// The more the number is, the less is an error due to system resources fluctuation
-	numIterations := 50000
+	numIterations := 25000
 	// setting maximum System Model depth
 	maxDepth := 4
 	// setting maximum number of applications in MAIS
-	maxAppNumber := 101
-	// setting a power of maximum number of instances per Application (e.g., 3 corresponds to 10^3, thus algorithm
-	// would iterate over 10^0, 10^1, 10^2 and 10^3)
-	maxNumInstancesPerApp := 2
+	maxAppNumber := 100
+	// setting a maximum number of instances per Application
+	maxNumInstancesPerApp := 100
 
 	err := BenchSystemModel(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations)
 	if err != nil {
@@ -55,11 +53,10 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 	for depth := 1; depth <= maxDepth; depth++ {
 		benchmarkedData[depth] = make(map[int]map[int]float64, 0)
 		// iterating over the amount of apps in the system
-		for appNumber := 1; appNumber < maxAppNumber; appNumber += 5 {
+		for appNumber := 1; appNumber <= maxAppNumber+1; appNumber += 5 {
 			benchmarkedData[depth][appNumber] = make(map[int]float64, 0)
 			// iterating over the range of the minimum and maximum number of instances deployed by application
-			for power := 0; power <= maxNumInstancesPerApp; power++ {
-				maxNumInstances := int(math.Pow10(power))
+			for maxNumInstances := 1; maxNumInstances <= maxNumInstancesPerApp+1; maxNumInstances += 5 {
 				log.Printf("%d iterations over Depth %v, App number %v, Number of instances %v\n", numIterations, depth, appNumber, maxNumInstances)
 				// setting timer to 0
 				timer = 0
