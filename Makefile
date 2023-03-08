@@ -33,7 +33,7 @@ bench-with-Docker: image
 # ToDo - build infrastructure with parsing around it..
 gobench: # @HELP benchmark the codebase with gobench
 gobench: build
-	go test -v -bench=. ./... -count=100 -run=^# -benchtime=${BENCH_TIME} -benchmem
+	go test -v -bench=. ./... -count=100 -run=^# -benchtime=${BENCH_TIME} -benchmem -timeout 0m
 	# there is a room to parse output of benchmarking and process graphically
 
 generate_figures: # @HELP generates figures based on the benchmarked data. It needs an exact name of the file carrying data!
