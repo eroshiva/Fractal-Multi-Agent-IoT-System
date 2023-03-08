@@ -16,6 +16,9 @@ install: # @HELP install newly build package in a local environment - now it can
 install: build
 	cd cmd/fractal-mas/ && go install && cd ../../
 
+install-gobenchdata: # @HELP installs gobench data tool which parses go bench data into file
+	go install go.bobheadxi.dev/gobenchdata@latest
+
 example: # @HELP runs a unit test, which generates a random system model and plots a graph to showcase it
 example: build
 	./build/_output/fractal-mas --example
@@ -32,9 +35,11 @@ bench-with-Docker: image
 
 # ToDo - build infrastructure with parsing around it..
 gobench: # @HELP benchmark the codebase with gobench
-gobench: build
-	go test -v -bench=. ./... -count=100 -run=^# -benchtime=${BENCH_TIME} -benchmem -timeout 0m
-	# there is a room to parse output of benchmarking and process graphically
+gobench: build install-gobenchdata
+#	go test -v -bench=. ./... -cpu=4 -count=100 -benchtime=${BENCH_TIME} -benchmem -timeout 0m | gobenchdata --json ./data/benchmarks.json
+	go test -bench . -benchmem ./... -timeout 0m -benchtime=${BENCH_TIME} -count=10 | gobenchdata --json ./data/benchmarks.json
+	gobenchdata web generate ./data
+	cd data && gobenchdata web serve
 
 generate_figures: # @HELP generates figures based on the benchmarked data. It needs an exact name of the file carrying data!
 generate_figures: build
@@ -55,7 +60,7 @@ test: build linters
 run: example
 
 clean: # @HELP remove all the build artifacts
-	rm -rf ./build/_output ./vendor
+	rm -rf ./build/_output ./vendor ./data/assets/ ./data/gobenchdata-web.yml ./data/index.html ./data/overrides.css
 	go clean -cache -testcache
 
 # ToDo - fix Dockerfile
