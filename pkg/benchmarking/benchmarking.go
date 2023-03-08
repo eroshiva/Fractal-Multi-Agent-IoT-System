@@ -26,7 +26,7 @@ var benchmarkedData map[int]map[int]map[int]float64
 func BenchSystemModelNoParam() error {
 	// Setting number of iterations to perform on a single parameter set.
 	// The more the number is, the less is an error due to system resources fluctuation
-	numIterations := 100
+	numIterations := 50000
 	// setting maximum System Model depth
 	maxDepth := 4
 	// setting maximum number of applications in MAIS
