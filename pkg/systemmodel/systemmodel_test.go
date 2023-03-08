@@ -62,17 +62,17 @@ func TestGenerateRandomSystemModel(t *testing.T) {
 }
 
 func BenchmarkGenerateSystemModel(b *testing.B) {
-	systemModel := &SystemModel{}
-	// defining input parameters
-	var a = 10
-	var l = 4
-	// defining a minimum and maximum number of instances per application
-	var maxNumInstances = 15 // maximum 15 instances per app
-	var minNumInstances = 1  // minimum 1 instances per app
-	// defining list of application names
-	names := GenerateAppNames(a)
-	systemModel.InitializeSystemModel(maxNumInstances, l)
-	systemModel.CreateRandomApplications(names, minNumInstances, maxNumInstances)
-	systemModel.GenerateSystemModel()
-	//b.Logf("System model is\n%v", systemModel)
+	for i := 0; i < b.N; i++ {
+		systemModel := &SystemModel{}
+		// defining input parameters
+		var apps = 10
+		var depth = 4
+		// defining a minimum and maximum number of instances per application
+		var maxNumInstances = 15 // maximum 15 instances per app
+		// defining list of application names
+		names := GenerateAppNames(apps)
+		systemModel.InitializeSystemModel(maxNumInstances, depth)
+		systemModel.CreateRandomApplications(names, 1, maxNumInstances)
+		systemModel.GenerateSystemModel()
+	}
 }
