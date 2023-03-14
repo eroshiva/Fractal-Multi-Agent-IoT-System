@@ -5,11 +5,12 @@ import (
 	"fmt"
 )
 
-// InstanceReliability defines an ERT-CORE instance reliability
-type InstanceReliability struct {
+// ErtCore defines an ERT-CORE instance reliability
+type ErtCore struct {
 	ReliabilityPerParameter ReliabilityPerParameter // map key is a parameter name
 	Priorities              map[string]float64      // map key is a parameter name
 	Reliability             float64                 // holds computed reliability
+	EntityName              string                  // holds an entity name
 }
 
 // ReliabilityPerParameter defines reliability value per parameter
@@ -31,37 +32,43 @@ type InputMetric struct {
 }
 
 // Initialize initializes an InstanceReliability structure
-func (r *InstanceReliability) Initialize() *InstanceReliability {
+func (r *ErtCore) Initialize() *ErtCore {
 	r.Priorities = make(map[string]float64, 0)
 	r.Reliability = 0.0
 	return r
 }
 
-// ComputeInstanceReliability computes an instance Reliability value
-func (r *InstanceReliability) ComputeInstanceReliability() error {
+// SetName sets a name of an ERT-CORE instance
+func (r *ErtCore) SetName(name string) *ErtCore {
+	r.EntityName = name
+	return r
+}
+
+// ComputeReliability computes an instance Reliability value
+func (r *ErtCore) ComputeReliability() (float64, error) {
 	var reliability float64
 
 	for k, v := range r.Priorities {
 		r.ReliabilityPerParameter.InputMetrics[k].ComputeInputMetric()
 		rpp, err := r.ReliabilityPerParameter.ComputeReliabilityPerGivenParameter(k)
 		if err != nil {
-			return err
+			return reliability, err
 		}
 		reliability += rpp * v
 	}
 	r.Reliability = reliability
-	return nil
+	return reliability, nil
 }
 
 // SetReliabilityPerParameter sets a reliability per parameter
-func (r *InstanceReliability) SetReliabilityPerParameter(rpp ReliabilityPerParameter) *InstanceReliability {
+func (r *ErtCore) SetReliabilityPerParameter(rpp ReliabilityPerParameter) *ErtCore {
 	r.ReliabilityPerParameter = rpp
 	return r
 }
 
 // SetPriorities sets a priority vector as a map, where key is a parameter name and a value is a priority (= weight)
 // of reliability per parameter
-func (r *InstanceReliability) SetPriorities(priorities map[string]float64) *InstanceReliability {
+func (r *ErtCore) SetPriorities(priorities map[string]float64) *ErtCore {
 	r.Priorities = priorities
 	return r
 }

@@ -76,3 +76,20 @@ func BenchmarkGenerateSystemModel(b *testing.B) {
 		systemModel.GenerateSystemModel()
 	}
 }
+
+func TestSetGetReliability(t *testing.T) {
+	instance := Instance{}
+	instance.CreateInstance("MAIS", CreateInstanceTypeVI()).SetReliability(0.51967457)
+	reliability, err := instance.GetReliability()
+	assert.NilError(t, err)
+	assert.Equal(t, 0.51967457, reliability)
+}
+
+func TestSetGetAspect(t *testing.T) {
+	relStr := "0.51967457"
+	instance := Instance{}
+	instance.CreateInstance("MAIS", CreateInstanceTypeVI()).SetAspect(reliabilityKey, relStr)
+	retRelStr, err := instance.GetAspect(reliabilityKey)
+	assert.NilError(t, err)
+	assert.Equal(t, retRelStr, relStr)
+}
