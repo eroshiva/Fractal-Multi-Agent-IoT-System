@@ -43,7 +43,7 @@ gobench: build install-gobenchdata
 
 generate_figures: # @HELP generates figures based on the benchmarked data. It needs an exact name of the file carrying data!
 generate_figures: build
-	./build/_output/fractal-mas --generateFigures benchmark_2023-03-08_07:32:08.json
+	./build/_output/fractal-mas --generateFigures benchmark_2023-03-12_10:55:56.json
 
 linters-install: # @HELP install linters locally for verification
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin ${GOLANGCI_LINTERS_VERSION}
@@ -64,6 +64,6 @@ clean: # @HELP remove all the build artifacts
 	go clean -cache -testcache
 
 # ToDo - fix Dockerfile
-image: # @HELP builds a Docker image
+image: build # @HELP builds a Docker image
 	docker build --platform linux/amd64 . -f build/fractal-mas/Dockerfile \
 		-t ${DOCKER_REPOSITORY}fractal-mas-generator:${FMAS_VERSION}

@@ -43,9 +43,10 @@ const (
 // Application structure defines initial set of rules for applications, probabilities of the application deployment and
 // carries a map of the deployed apps
 type Application struct {
-	Rules       int     // number of instances that application can deploy
-	Probability float32 // probability of the application deployment
-	State       bool    // true for deployed, false for not deployed
+	Rules       int               // number of instances that application can deploy
+	Probability float32           // probability of the application deployment
+	State       bool              // true for deployed, false for not deployed
+	Aspect      map[string]string // holds aspects of the Application, like Reliability or its Priority (= weight)
 }
 
 // InitializeSystemModel initializes SystemModel with provided values
@@ -58,11 +59,12 @@ func (sm *SystemModel) InitializeSystemModel(numApps int, depth int) {
 }
 
 // CreateInstance creates an instance with given name and instance type
-func (i *Instance) CreateInstance(name string, tp InstanceType) {
+func (i *Instance) CreateInstance(name string, tp InstanceType) *Instance {
 	i.Name = name
 	i.Type = tp
 	i.Relations = make([]*Instance, 0)
 	i.Aspect = make(map[string]string, 0)
+	return i
 }
 
 // AddRelation adds an instance to the instance list (i.e., Relations)
@@ -88,12 +90,13 @@ func (sm *SystemModel) AddLayer(layer *Layer, level int) {
 
 // AddInstanceToLayer adds a given Instance to the Layer and checks if it is of type VI
 // to indicate that VI was deployed at this Layer
-func (l *Layer) AddInstanceToLayer(instance *Instance) {
+func (l *Layer) AddInstanceToLayer(instance *Instance) *Layer {
 	l.Instances = append(l.Instances, instance)
 	// checking if an instance is of type VI
 	if instance.Type == VI {
 		l.VIwasDeployed = true
 	}
+	return l
 }
 
 // CreateInstanceTypeVI creates an enumerator for VI type
@@ -107,13 +110,15 @@ func CreateInstanceTypeApp() InstanceType {
 }
 
 // CreateApplication creates an application with given parameters and adds it to the list
-func (sm *SystemModel) CreateApplication(numInstances int, probability float32, name string) {
+func (sm *SystemModel) CreateApplication(numInstances int, probability float32, name string) *SystemModel {
 	application := &Application{
 		Rules:       numInstances,
 		Probability: probability,
 		State:       false,
+		Aspect:      make(map[string]string, 0),
 	}
 	sm.Applications[name] = application
+	return sm
 }
 
 // CreateRandomApplications creates a set of applications with random parameters given the pre-defined names
@@ -242,7 +247,11 @@ func (sm *SystemModel) InitializeRootLayer() {
 // PrettyPrintApplications prints Application related information
 func (sm *SystemModel) PrettyPrintApplications() {
 	for k, v := range sm.Applications {
-		fmt.Printf("%s has probability %v and deploys %v instances. Deployed status: %v\n", k, v.Probability, v.Rules, v.State)
+		fmt.Printf("%s has probability %v and deploys %v instances. Number of aspects is %d."+
+			" Deployed status: %v\n", k, v.Probability, v.Rules, len(v.Aspect), v.State)
+		for key, value := range v.Aspect {
+			fmt.Printf("Aspect %s, value %s\n", key, value)
+		}
 	}
 }
 
@@ -264,7 +273,10 @@ func (l *Layer) PrettyPrintLayer() {
 				fmt.Printf("Related is Instance %s of type %v\n", val.Name, val.Type)
 			}
 		} else {
-			fmt.Printf("--> Instance %s of type %v has no relations\n", v.Name, v.Type)
+			fmt.Printf("--> Instance %s of type %v has no relations and %d aspects\n", v.Name, v.Type, len(v.Aspect))
+			for k, v := range v.Aspect {
+				fmt.Printf("Aspect %s, value %s\n", k, v)
+			}
 		}
 	}
 }
@@ -329,4 +341,20 @@ func GetSystemModelParameters(data map[int]map[int]map[int]float64) (int, int, i
 	}
 
 	return depth, apps, instances, nil
+}
+
+// GetAspect function returns an Aspect of an Instance with a given key
+func (i *Instance) GetAspect(key string) (string, error) {
+	var aspect string
+	aspect, ok := i.Aspect[key]
+	if !ok {
+		return "", fmt.Errorf("can't find '%v' aspect for instance %v", key, i.Name)
+	}
+	return aspect, nil
+}
+
+// SetAspect function sets an Aspect for an Instance with a given key and a given value
+func (i *Instance) SetAspect(key, value string) *Instance {
+	i.Aspect[key] = value
+	return i
 }

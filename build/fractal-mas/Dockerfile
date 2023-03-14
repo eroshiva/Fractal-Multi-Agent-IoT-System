@@ -1,10 +1,8 @@
 # this is a minimal image, which needs git (and curl) to be installed
-FROM golang:1.20.1-alpine
+FROM golang:1.20.2-alpine
 
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates git curl
-
+RUN apk add --update && apk add --update --no-cache ca-certificates git curl
 WORKDIR /app
+COPY ./build/_output/fractal-mas /app/fractal-mas
 
-ADD bin /bin/
-
-CMD ["/bin/sh"]
+#CMD ["/bin/sh"] /app/fractal-mas --example

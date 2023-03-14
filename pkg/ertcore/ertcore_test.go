@@ -78,15 +78,16 @@ func TestComputeReliability1(t *testing.T) {
 		"Availability": &av,
 	}).ComputeReliabilityPerParameter()
 
-	r := InstanceReliability{}
+	r := ErtCore{}
 	r.Initialize().SetReliabilityPerParameter(rpp).SetPriorities(map[string]float64{
 		"Workload":     0.4,
 		"ARPT":         0.55,
 		"Availability": 0.05,
-	})
-	err := r.ComputeInstanceReliability()
+	}).SetName("MAIS")
+	reliability, err := r.ComputeReliability()
 	assert.NilError(t, err)
 	assert.Assert(t, r.Reliability > 0.0)
+	assert.Equal(t, reliability, r.Reliability)
 	t.Logf("Computed reliability is %v\n", r.Reliability)
 }
 
@@ -136,11 +137,12 @@ func TestComputeReliability2(t *testing.T) {
 		SetInputMetrics(CreateInputMetricsVectorForReliabilityPerParameter(params, w, arpt, av)).
 		ComputeReliabilityPerParameter()
 
-	r := InstanceReliability{}
+	r := ErtCore{}
 	r.Initialize().SetReliabilityPerParameter(rpp).
 		SetPriorities(CreatePrioritiesVectorForInstanceReliability(params, []float64{0.4, 0.55, 0.05}))
-	err := r.ComputeInstanceReliability()
+	reliability, err := r.ComputeReliability()
 	assert.NilError(t, err)
 	assert.Assert(t, r.Reliability > 0.0)
+	assert.Equal(t, r.Reliability, reliability)
 	t.Logf("Computed reliability is %v\n", r.Reliability)
 }
