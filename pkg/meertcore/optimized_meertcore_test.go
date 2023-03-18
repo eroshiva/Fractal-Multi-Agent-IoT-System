@@ -102,4 +102,7 @@ func TestTotalReliability(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, totalRel != 0.0)
 	t.Logf("Total reliability of the system is: %v\n", totalRel)
+
+	systemModel.PrettyPrintApplications()
+	systemModel.PrettyPrintLayers()
 }

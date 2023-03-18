@@ -23,20 +23,22 @@ func (me *MeErtCore) ComputeReliabilityOptimized() (float64, error) {
 			}
 			reliability += rlblty * priority
 		} else if strings.HasPrefix(k, "VI") {
-			// gather reliability of all VIs from the last layer
+			// gather reliability of all VIs, which do not deploy any further instance
 			var viRel float64
-			for _, val := range me.SystemModel.Layers[len(me.SystemModel.Layers)].Instances {
-				if strings.HasPrefix(val.Name, "VI") {
-					// FIXME: this is a potential source of over-floating Reliability upper boundary of 1
-					priority, err := val.GetPriority()
-					if err != nil {
-						return 0, fmt.Errorf("application %s: %v", val.Name, err)
+			for d := len(me.SystemModel.Layers); d > 0; d-- {
+				for _, val := range me.SystemModel.Layers[d].Instances {
+					if strings.HasPrefix(val.Name, "VI") && len(val.Relations) == 0 {
+						// FIXME: this is a potential source of over-floating Reliability upper boundary of 1
+						priority, err := val.GetPriority()
+						if err != nil {
+							return 0, fmt.Errorf("application %s: %v", val.Name, err)
+						}
+						rlblty, err := val.GetReliability()
+						if err != nil {
+							return 0, fmt.Errorf("application %s: %v", val.Name, err)
+						}
+						viRel += rlblty * priority
 					}
-					rlblty, err := val.GetReliability()
-					if err != nil {
-						return 0, fmt.Errorf("application %s: %v", val.Name, err)
-					}
-					viRel += rlblty * priority
 				}
 			}
 			me.SystemModel.Applications[k].SetReliability(viRel)
