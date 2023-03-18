@@ -282,10 +282,13 @@ func (sm *SystemModel) SetInstanceReliabilitiesRandom() error {
 					" %d instances were NOT found", k, instCount)
 			}
 		} else if strings.Contains(k, "VI") {
-			for _, inst := range sm.Layers[len(sm.Layers)].Instances {
-				if strings.Contains(inst.Name, "VI") {
-					rnd := rand.Float64()
-					inst.SetReliability(rnd)
+			// setting reliabilities only for the VIs which do not deploy any further instances
+			for d := len(sm.Layers); d > 0; d-- {
+				for _, inst := range sm.Layers[d].Instances {
+					if strings.Contains(inst.Name, "VI") && len(inst.Relations) == 0 {
+						rnd := rand.Float64()
+						inst.SetReliability(rnd)
+					}
 				}
 			}
 		}
