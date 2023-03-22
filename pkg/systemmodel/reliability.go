@@ -23,6 +23,7 @@ func (sm *SystemModel) GatherApplicationInstanceReliabilities(appName string) (m
 	if app.State && !strings.HasPrefix(appName, "VI") {
 		res := make(map[string]float64, app.Rules)
 		var appReliability float64
+		count := app.Rules
 		for i := len(sm.Layers); i > 0; i-- {
 			layer, ok := sm.Layers[i]
 			if !ok {
@@ -40,6 +41,10 @@ func (sm *SystemModel) GatherApplicationInstanceReliabilities(appName string) (m
 						return nil, err
 					}
 					appReliability += reliability * priority
+					count--
+				}
+				if count == 0 {
+					break
 				}
 			}
 		}
@@ -87,7 +92,7 @@ func (i *Instance) GetReliability() (float64, error) {
 	relStr, ok := i.Aspect[reliabilityKey]
 	if !ok {
 		return 0, fmt.Errorf("looks like Reliability aspect for instance %v was not defined.. "+
-			"Empty output for a key %v", i.Name, reliabilityKey)
+			"Empty output for a key %v\n%v", i.Name, reliabilityKey, i)
 	}
 	reliability, err := strconv.ParseFloat(relStr, 64)
 	if err != nil {
@@ -132,7 +137,7 @@ func (a *Application) SetPriority(priority float64) *Application {
 func (a *Application) GetPriority() (float64, error) {
 	priorStr, ok := a.Aspect[priorityKey]
 	if !ok {
-		return 0, fmt.Errorf("looks like Priority aspect was not defined for the application.. "+
+		return 0, fmt.Errorf("looks like Priority aspect was not defined for the Application.. "+
 			"Empty output for a key %v", priorityKey)
 	}
 	priority, err := strconv.ParseFloat(priorStr, 64)
@@ -187,6 +192,8 @@ func (sm *SystemModel) GetInstance(instName string) (*Instance, error) {
 // SetApplicationPrioritiesRandom sets random priorities for each application
 func (sm *SystemModel) SetApplicationPrioritiesRandom() *SystemModel {
 	probSum := 1.0
+	// ToDo - should we exclude VI from there or split it's priority across all VIs??
+	//  The latter is the solution, I guess..
 	for _, v := range sm.Applications {
 		rnd := rand.Float64() * probSum
 		v.SetPriority(rnd)
@@ -197,98 +204,152 @@ func (sm *SystemModel) SetApplicationPrioritiesRandom() *SystemModel {
 
 // SetInstancePrioritiesRandom sets random priorities for instances of each application
 func (sm *SystemModel) SetInstancePrioritiesRandom() error {
-	for k, v := range sm.Applications {
-		if v.State && !strings.Contains(k, "VI") {
-			instCount := v.Rules
-			priorSum := 1.0
-			// Instances of the application usually sit at the same level,
-			// thus it is convenient to avoid redundant iterations and break the loop here
-			for i := len(sm.Layers); i > 0 && instCount > 0; i-- {
-				layer, ok := sm.Layers[i]
-				if !ok {
-					return fmt.Errorf("no layer at level %d exists", i)
-				}
-				for _, inst := range layer.Instances {
-					if strings.HasPrefix(inst.Name, k+"-") && inst.Type == App {
-						rnd := rand.Float64() * priorSum
-						inst.SetPriority(rnd)
-						priorSum -= rnd
-						instCount--
+	if len(sm.Layers) != 1 {
+		for k, v := range sm.Applications {
+			if v.State && !strings.HasPrefix(k, "VI") {
+				instCount := v.Rules
+				priorSum := 1.0
+				// Instances of the application usually sit at the same level,
+				// thus it is convenient to avoid redundant iterations and break the loop here
+				for i := len(sm.Layers); i > 0 && instCount > 0; i-- {
+					layer, ok := sm.Layers[i]
+					if !ok {
+						return fmt.Errorf("no layer at level %d exists", i)
+					}
+					for _, inst := range layer.Instances {
+						if strings.HasPrefix(inst.Name, k+"-") && inst.Type == App {
+							rnd := rand.Float64() * priorSum
+							inst.SetPriority(rnd)
+							priorSum -= rnd
+							instCount--
+						}
+					}
+					if instCount == 0 {
+						break
 					}
 				}
-				if instCount == 0 {
-					break
+				if instCount != 0 {
+					return fmt.Errorf("PANIC!!! Not all instances were found for Application %s!"+
+						" %d instances were NOT found", k, instCount)
 				}
-			}
-			if instCount != 0 {
-				return fmt.Errorf("PANIC!!! Not all instances were found for Application %s!"+
-					" %d instances were NOT found", k, instCount)
-			}
-		} else if v.State { // handling the VI case..
-			instCount := *sm.VIcount
-			priorSum := 1.0
-			for i := 1; i <= len(sm.Layers) && instCount > 0; i++ {
-				layer, ok := sm.Layers[i]
-				if !ok {
-					return fmt.Errorf("no layer at level %d exists", i)
-				}
-				// if there are no VIs, then there is nothing to do
-				if !layer.VIwasDeployed {
-					break
-				}
-				for _, inst := range layer.Instances {
-					if strings.HasPrefix(inst.Name, "VI") && inst.Type == VI {
-						rnd := rand.Float64() * priorSum
-						inst.SetPriority(rnd)
-						priorSum -= rnd
-						instCount--
+			} else if v.State { // handling the VI case..
+				instCount := int64(*sm.VIcount-1) * int64(v.Rules) // get total amount of VI instances (-1 is to exclude root instance, MAIS)
+				priorSum := 1.0
+				for i := 1; i <= len(sm.Layers) && instCount > 0; i++ {
+					layer, ok := sm.Layers[i]
+					if !ok {
+						return fmt.Errorf("no layer at level %d exists", i)
+					}
+					// if there are no VIs, then there is nothing to do
+					if !layer.VIwasDeployed {
+						break
+					}
+					for _, inst := range layer.Instances {
+						if strings.HasPrefix(inst.Name, "VI") && inst.IsVI() {
+							rnd := rand.Float64() * priorSum
+							inst.SetPriority(rnd)
+							//log.Printf("Setting priority %v to instance %s\n", rnd, inst.Name)
+							priorSum -= rnd
+							instCount--
+						}
 					}
 				}
+				if instCount != 0 {
+					return fmt.Errorf("PANIC!!! Not all instances were found for %s!"+
+						" %d instances were NOT found", k, instCount)
+				}
 			}
-			if instCount != 0 {
-				return fmt.Errorf("PANIC!!! Not all instances were found for %s!"+
-					" %d instances were NOT found", k, instCount)
+		}
+	} else { // treating the case of a single instance System Model
+		if len(sm.Layers) == 1 {
+			// drilling to root layer
+			if len(sm.Layers[1].Instances) == 1 {
+				// double-check
+				if strings.HasPrefix(sm.Layers[1].Instances[0].Name, "MAIS") {
+					prty := rand.Float64()
+					sm.Layers[1].Instances[0].SetPriority(prty)
+				}
 			}
 		}
 	}
+	//sm.PrettyPrintLayers()
+
 	return nil
 }
 
 // SetInstanceReliabilitiesRandom sets random reliabilities for instances of each application
 func (sm *SystemModel) SetInstanceReliabilitiesRandom() error {
-	for k, v := range sm.Applications {
-		if v.State && !strings.Contains(k, "VI") {
-			instCount := v.Rules
-			// Instances of the application usually sit at the same level,
-			// thus it is convenient to avoid redundant iterations and break the loop here
-			for i := len(sm.Layers); i > 0 && instCount > 0; i-- {
-				layer, ok := sm.Layers[i]
-				if !ok {
-					return fmt.Errorf("no layer at level %d exists", i)
-				}
-				for _, inst := range layer.Instances {
-					if strings.HasPrefix(inst.Name, k+"-") && inst.Type == App {
-						rnd := rand.Float64()
-						inst.SetReliability(rnd)
-						instCount--
+	if len(sm.Applications) != 0 {
+		// checking if at least 1 application was deployed..
+		var deployed = 0
+		for _, v := range sm.Applications {
+			if v.State {
+				deployed++
+			}
+		}
+		if deployed != 0 {
+			for k, v := range sm.Applications {
+				if v.State && !strings.Contains(k, "VI") {
+					instCount := v.Rules
+					// Instances of the application usually sit at the same level,
+					// thus it is convenient to avoid redundant iterations and break the loop here
+					for i := len(sm.Layers); i > 0 && instCount > 0; i-- {
+						layer, ok := sm.Layers[i]
+						if !ok {
+							return fmt.Errorf("no layer at level %d exists", i)
+						}
+						for _, inst := range layer.Instances {
+							if strings.HasPrefix(inst.Name, k+"-") && inst.Type == App {
+								rnd := rand.Float64()
+								inst.SetReliability(rnd)
+								instCount--
+							}
+						}
+						if instCount == 0 {
+							break
+						}
+					}
+					if instCount != 0 {
+						return fmt.Errorf("PANIC!!! Not all instances were found for Application %s!"+
+							" %d instances were NOT found", k, instCount)
+					}
+				} else if strings.Contains(k, "VI") {
+					// setting reliabilities only for the VIs which do not deploy any further instances
+					for d := len(sm.Layers); d > 0; d-- {
+						layer, ok := sm.Layers[d]
+						if !ok {
+							sm.PrettyPrintApplications().PrettyPrintLayers()
+							return fmt.Errorf("couldn't extract layer %d out of system model", d)
+						}
+						for _, inst := range layer.Instances {
+							if strings.Contains(inst.Name, "VI") && len(inst.Relations) == 0 {
+								rnd := rand.Float64()
+								inst.SetReliability(rnd)
+							}
+						}
 					}
 				}
-				if instCount == 0 {
-					break
+			}
+		} else { // if no applications were deployed, setting
+			if len(sm.Layers) == 1 {
+				// drilling to root layer
+				if len(sm.Layers[1].Instances) == 1 {
+					// double-check
+					if strings.HasPrefix(sm.Layers[1].Instances[0].Name, "MAIS") {
+						rlblty := rand.Float64()
+						sm.Layers[1].Instances[0].SetReliability(rlblty)
+					}
 				}
 			}
-			if instCount != 0 {
-				return fmt.Errorf("PANIC!!! Not all instances were found for Application %s!"+
-					" %d instances were NOT found", k, instCount)
-			}
-		} else if strings.Contains(k, "VI") {
-			// setting reliabilities only for the VIs which do not deploy any further instances
-			for d := len(sm.Layers); d > 0; d-- {
-				for _, inst := range sm.Layers[d].Instances {
-					if strings.Contains(inst.Name, "VI") && len(inst.Relations) == 0 {
-						rnd := rand.Float64()
-						inst.SetReliability(rnd)
-					}
+		}
+	} else { // treating the case of a single instance System Model
+		if len(sm.Layers) == 1 {
+			// drilling to root layer
+			if len(sm.Layers[1].Instances) == 1 {
+				// double-check
+				if strings.HasPrefix(sm.Layers[1].Instances[0].Name, "MAIS") {
+					rlblty := rand.Float64()
+					sm.Layers[1].Instances[0].SetReliability(rlblty)
 				}
 			}
 		}

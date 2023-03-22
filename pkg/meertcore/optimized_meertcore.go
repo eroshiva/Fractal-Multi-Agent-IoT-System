@@ -27,7 +27,7 @@ func (me *MeErtCore) ComputeReliabilityOptimized() (float64, error) {
 			var viRel float64
 			for d := len(me.SystemModel.Layers); d > 0; d-- {
 				for _, val := range me.SystemModel.Layers[d].Instances {
-					if strings.HasPrefix(val.Name, "VI") && len(val.Relations) == 0 {
+					if val.IsVI() && len(val.Relations) == 0 {
 						// FIXME: this is a potential source of over-floating Reliability upper boundary of 1
 						priority, err := val.GetPriority()
 						if err != nil {

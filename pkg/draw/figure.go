@@ -164,7 +164,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 
 	//////// plotting dependencies for instances per application
 	var instArr []int
-	for instNumber := 1; instNumber <= maxAppNumber; instNumber += 5 {
+	for instNumber := 1; instNumber <= maxNumInstancesPerApp; instNumber += 5 {
 		instArr = append(instArr, instNumber)
 	}
 	depthFigure.SetOutputFileName("time-complexity-instances-per-app-26-apps").SetFigureName("Time Complexity of Fractal MAS for 26 Apps in MAIS").
