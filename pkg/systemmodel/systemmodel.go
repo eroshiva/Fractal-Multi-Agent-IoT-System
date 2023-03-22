@@ -4,6 +4,7 @@ package systemmodel
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -50,12 +51,13 @@ type Application struct {
 }
 
 // InitializeSystemModel initializes SystemModel with provided values
-func (sm *SystemModel) InitializeSystemModel(numApps int, depth int) {
+func (sm *SystemModel) InitializeSystemModel(numApps int, depth int) *SystemModel {
 	sm.Depth = depth
 	sm.Layers = make(map[int]*Layer, depth)
 	sm.Applications = make(map[string]*Application, numApps)
 	viCount := uint64(0)
 	sm.VIcount = &viCount
+	return sm
 }
 
 // CreateInstance creates an instance with given name and instance type
@@ -68,24 +70,28 @@ func (i *Instance) CreateInstance(name string, tp InstanceType) *Instance {
 }
 
 // AddRelation adds an instance to the instance list (i.e., Relations)
-func (i *Instance) AddRelation(relation *Instance) {
+func (i *Instance) AddRelation(relation *Instance) *Instance {
 	i.Relations = append(i.Relations, relation)
+	return i
 }
 
 // AddAspect adds an Aspect to the Instance list (i.e., reliability, etc.)
-func (i *Instance) AddAspect(aspectType string, aspectValue string) {
+func (i *Instance) AddAspect(aspectType string, aspectValue string) *Instance {
 	i.Aspect[aspectType] = aspectValue
+	return i
 }
 
 // InitializeLayer initializes Layer
-func (l *Layer) InitializeLayer() {
+func (l *Layer) InitializeLayer() *Layer {
 	l.Instances = make([]*Instance, 0)
 	l.VIwasDeployed = false
+	return l
 }
 
 // AddLayer adds layer to the system model at a given level
-func (sm *SystemModel) AddLayer(layer *Layer, level int) {
+func (sm *SystemModel) AddLayer(layer *Layer, level int) *SystemModel {
 	sm.Layers[level] = layer
+	return sm
 }
 
 // AddInstanceToLayer adds a given Instance to the Layer and checks if it is of type VI
@@ -122,7 +128,7 @@ func (sm *SystemModel) CreateApplication(numInstances int, probability float32, 
 }
 
 // CreateRandomApplications creates a set of applications with random parameters given the pre-defined names
-func (sm *SystemModel) CreateRandomApplications(names []string, minNumInstances int, maxNumInstances int) {
+func (sm *SystemModel) CreateRandomApplications(names []string, minNumInstances int, maxNumInstances int) *SystemModel {
 	sm.Applications = make(map[string]*Application, len(names))
 	probabilitySum := float32(1)
 	for _, name := range names {
@@ -136,6 +142,7 @@ func (sm *SystemModel) CreateRandomApplications(names []string, minNumInstances 
 		sm.CreateApplication(numInstances, probability, name)
 		probabilitySum -= probability
 	}
+	return sm
 }
 
 // DeployApplication checks if the Application is deployed. It generates random probability and compares with
@@ -149,16 +156,20 @@ func (a *Application) DeployApplication() bool {
 // DeployApplications iterates over a map of Applications and checks, whether application is deployed or not.
 // It returns updated list of Applications, which denotes the updated state of applications
 func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel int, viCount *uint64) (bool, map[string]*Application) {
-	updatedApps := make(map[string]*Application, 0)
+	updatedApps := make(map[string]*Application, len(apps))
 	viWasDeployed := false
 
 	for appName, app := range apps {
-		// if the application was not yet deployed or it is a VI (which can be deployed multiple times)
+		// if the application was not yet deployed, or it is a VI (which can be deployed multiple times)
 		if !app.State || strings.HasPrefix(appName, "VI") {
 			updatedApp := &Application{
 				Rules:       app.Rules,
 				Probability: app.Probability,
 				State:       false,
+			}
+			// specific to VI - if it was already deployed, then keep its flag as deployed..
+			if strings.HasPrefix(appName, "VI") && app.State {
+				updatedApp.State = true
 			}
 			deployed := app.DeployApplication()
 			if deployed {
@@ -181,6 +192,9 @@ func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel
 				updatedApp.State = true
 			}
 			updatedApps[appName] = updatedApp
+		} else {
+			// if application was already deployed, just save it
+			updatedApps[appName] = app
 		}
 	}
 
@@ -189,19 +203,19 @@ func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel
 
 // CreateLayer creates a layer of the SystemModel and updates the Applications list to reflect the current deployment state
 func (l *Layer) CreateLayer(apps map[string]*Application, currentLevel int, viCount *uint64) (map[string]*Application, *Layer) {
-
 	nextLayer := &Layer{}
 	nextLayer.InitializeLayer()
+	updApps := apps
 
 	for _, instance := range l.Instances {
 		// checking if the instance is of type VI or the root instance, MAIS
 		if strings.HasPrefix(instance.Name, "VI") || strings.Contains(instance.Name, "MAIS") {
-			viWasDeployed, updatedApps := instance.DeployApplications(apps, currentLevel, viCount)
+			viWasDeployed, updatedApps := instance.DeployApplications(updApps, currentLevel, viCount)
 			if viWasDeployed {
 				l.VIwasDeployed = true
 			}
 			// overwrite the apps with regard to what was deployed
-			apps = updatedApps
+			updApps = updatedApps
 			// adding instances to layer
 			for _, inst := range instance.Relations {
 				nextLayer.AddInstanceToLayer(inst)
@@ -209,16 +223,16 @@ func (l *Layer) CreateLayer(apps map[string]*Application, currentLevel int, viCo
 		}
 	}
 
-	return apps, nextLayer
+	return updApps, nextLayer
 }
 
 // GenerateSystemModel generates system model with regard to provided input data
-func (sm *SystemModel) GenerateSystemModel() {
+func (sm *SystemModel) GenerateSystemModel() *SystemModel {
 	sm.InitializeRootLayer()
 	for i := 2; i <= sm.Depth; i++ {
 		if sm.Layers[i-1].VIwasDeployed {
-			var nextLayer *Layer
-			sm.Applications, nextLayer = sm.Layers[i-1].CreateLayer(sm.Applications, i, sm.VIcount)
+			apps, nextLayer := sm.Layers[i-1].CreateLayer(sm.Applications, i, sm.VIcount)
+			sm.Applications = apps // updating Applications map
 			// if something was deployed, then add Layer to the SystemModel, otherwise stop
 			if len(nextLayer.Instances) > 0 {
 				sm.AddLayer(nextLayer, i)
@@ -229,11 +243,12 @@ func (sm *SystemModel) GenerateSystemModel() {
 			break
 		}
 	}
+	return sm
 }
 
 // InitializeRootLayer initializes 1st level Layer of SystemModel as a single instance with given name "MAIS",
 // which behaves as a VI.
-func (sm *SystemModel) InitializeRootLayer() {
+func (sm *SystemModel) InitializeRootLayer() *SystemModel {
 	rootInstance := &Instance{}
 	rootInstance.CreateInstance("MAIS", CreateInstanceTypeVI())
 	rootLayer := &Layer{}
@@ -242,26 +257,29 @@ func (sm *SystemModel) InitializeRootLayer() {
 	*sm.VIcount++
 	rootLayer.AddInstanceToLayer(rootInstance)
 	sm.AddLayer(rootLayer, 1)
+	return sm
 }
 
 // PrettyPrintApplications prints Application related information
-func (sm *SystemModel) PrettyPrintApplications() {
+func (sm *SystemModel) PrettyPrintApplications() *SystemModel {
 	for k, v := range sm.Applications {
-		fmt.Printf("%s has probability %v and deploys %v instances. Number of aspects is %d."+
+		log.Printf("%s has probability %v and deploys %v instances. Number of aspects is %d."+
 			" Deployed status: %v\n", k, v.Probability, v.Rules, len(v.Aspect), v.State)
 		for key, value := range v.Aspect {
-			fmt.Printf("Aspect %s, value %s\n", key, value)
+			log.Printf("Aspect %s, value %s\n", key, value)
 		}
 	}
+	return sm
 }
 
 // PrettyPrintLayers prints Layers related information
-func (sm *SystemModel) PrettyPrintLayers() {
+func (sm *SystemModel) PrettyPrintLayers() *SystemModel {
 	for k := 1; k <= len(sm.Layers); k++ {
 		v := sm.Layers[k]
 		fmt.Printf("----> Layer %v, VI deployed %v, Instances deployed %v, detailed info about deployed instances:\n", k, v.VIwasDeployed, len(v.Instances))
 		v.PrettyPrintLayer()
 	}
+	return sm
 }
 
 // PrettyPrintLayer prints Layer related information
@@ -271,6 +289,14 @@ func (l *Layer) PrettyPrintLayer() {
 			fmt.Printf("--> Instance %s of type %v has %v following relations:\n", v.Name, v.Type, len(v.Relations))
 			for _, val := range v.Relations {
 				fmt.Printf("Related is Instance %s of type %v\n", val.Name, val.Type)
+			}
+			if len(v.Aspect) > 0 {
+				fmt.Printf("-> Instance %s of type %v has %d aspects, they are:\n", v.Name, v.Type, len(v.Aspect))
+				for k, v := range v.Aspect {
+					fmt.Printf("Aspect %s, value %s\n", k, v)
+				}
+			} else {
+				fmt.Printf("-> Instance %s of type %v has 0 aspects\n", v.Name, v.Type)
 			}
 		} else {
 			fmt.Printf("--> Instance %s of type %v has no relations and %d aspects\n", v.Name, v.Type, len(v.Aspect))
@@ -357,4 +383,30 @@ func (i *Instance) GetAspect(key string) (string, error) {
 func (i *Instance) SetAspect(key, value string) *Instance {
 	i.Aspect[key] = value
 	return i
+}
+
+// GetAppName returns an application name, which can be used as a key to get the Application out of
+// the applications list. It assumes that all Application instances in the name have dashes
+func (i *Instance) GetAppName() (string, error) {
+	if i.IsVI() {
+		// if it is a VI, then returning just VI
+		return "VI", nil
+	}
+	// if it is an Application, doing some parsing..
+	idx := strings.Index(i.Name, "-") // getting the first index of a dash
+	if idx != -1 {
+		return i.Name[:idx], nil
+	}
+
+	return "", fmt.Errorf("unknown app %s", i.Name)
+}
+
+// IsVI function returns true, if the instance is of type VI, otherwise false
+func (i *Instance) IsVI() bool {
+	return i.Type == VI
+}
+
+// IsApp function returns true, if the instance is of type Application, otherwise false
+func (i *Instance) IsApp() bool {
+	return i.Type == App
 }

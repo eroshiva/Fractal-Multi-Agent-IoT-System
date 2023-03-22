@@ -31,7 +31,10 @@ func fractalMAIS() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "fractal-mas",
 		Short: "Fractal Multi-Agent System benchmarker",
-		RunE:  runFractalMAIS,
+		Long: "Fractal Multi-Agent System, or Fractal MAS, implements a System Model based on means of Fractal theory" +
+			"which covers scalable MAS systems. This tool implements a benchmarker, drawer (to plot results of a benchmark)" +
+			"and ME-ERT-CORE (with its predecessor ERT-CORE) packages.",
+		RunE: runFractalMAIS,
 	}
 	// adding flags - default values are false
 	cmd.PersistentFlags().Bool("example", false, "generates in a single run a random Fractal MAS and plots a figure of it")
@@ -51,7 +54,7 @@ func fractalMAIS() *cobra.Command {
 }
 
 // runFractalMAIS performs main logic of the CLI - either showcases an example System Model or performs benchmarking
-func runFractalMAIS(cmd *cobra.Command, args []string) error {
+func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	example, _ := cmd.Flags().GetBool("example")
 	benchmark, _ := cmd.Flags().GetBool("benchmark")
 	hardcoded, _ := cmd.Flags().GetBool("hardcoded")
@@ -72,13 +75,23 @@ func runFractalMAIS(cmd *cobra.Command, args []string) error {
 	if example {
 		generateExampleSystemModel()
 	}
-	if benchmark {
+	if benchmark && hardcoded {
+		err := benchmarking.BenchSystemModelNoParam()
+		if err != nil {
+			return err
+		}
+		err = benchmarking.BenchMeErtCORENoParam()
+		if err != nil {
+			return err
+		}
+	}
+	if benchmark && !hardcoded {
 		// ToDo - parse SystemModel flags first..
 		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
 		if err != nil {
 			return err
 		}
-		err = benchmarking.BenchMeErtCORE()
+		err = benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations)
 		if err != nil {
 			return err
 		}
@@ -95,8 +108,14 @@ func runFractalMAIS(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	if benchMeErtCORE {
-		err := benchmarking.BenchMeErtCORE()
+	if benchMeErtCORE && hardcoded {
+		err := benchmarking.BenchMeErtCORENoParam()
+		if err != nil {
+			return err
+		}
+	}
+	if benchMeErtCORE && !hardcoded {
+		err := benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations)
 		if err != nil {
 			return err
 		}
