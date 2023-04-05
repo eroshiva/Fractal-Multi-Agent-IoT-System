@@ -16,7 +16,7 @@ var depth int
 var appNumber int
 var iterations int
 var maxNumInstances int
-var benchFiles string
+var benchFiles []string
 
 // The main entry point
 func main() {
@@ -26,30 +26,30 @@ func main() {
 	}
 }
 
-// fractalMAIS implements a command line interface for Fractal MAS project
+// fractalMAIS implements a command line interface for Fractal MAIS project
 func fractalMAIS() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fractal-mas",
-		Short: "Fractal Multi-Agent System benchmarker",
-		Long: "Fractal Multi-Agent System, or Fractal MAS, implements a System Model based on means of Fractal theory" +
-			"which covers scalable MAS systems. This tool implements a benchmarker, drawer (to plot results of a benchmark)" +
+		Use:   "fractal-mais",
+		Short: "Fractal Multi-Agent IoT System benchmarker",
+		Long: "Fractal Multi-Agent IoT System, or Fractal MAIS, implements a System Model based on means of Fractal theory" +
+			"which covers scalable MAIS systems. This tool implements a benchmarker, drawer (to plot results of a benchmark)" +
 			"and ME-ERT-CORE (with its predecessor ERT-CORE) packages.",
 		RunE: runFractalMAIS,
 	}
 	// adding flags - default values are false
-	cmd.PersistentFlags().Bool("example", false, "generates in a single run a random Fractal MAS and plots a figure of it")
-	cmd.PersistentFlags().Bool("benchmark", false, "performs a time complexity benchmarking of a Fractal MAS system model algorithm and ME-ERT-CORE algorithms")
+	cmd.PersistentFlags().Bool("example", false, "generates in a single run a random Fractal MAIS and plots a figure of it")
+	cmd.PersistentFlags().Bool("benchmark", false, "performs a time complexity benchmarking of a Fractal MAIS system model algorithm and ME-ERT-CORE algorithms")
 	cmd.PersistentFlags().Bool("hardcoded", false, "performs a hardcoded benchmarking (with hardcoded values")
-	cmd.PersistentFlags().Bool("benchFMAS", false, "performs a time complexity benchmarking of a Fractal MAS system model algorithm")
-	// ToDo - this is to be done in the near future..
+	cmd.PersistentFlags().Bool("benchFMAIS", false, "performs a time complexity benchmarking of a Fractal MAIS system model algorithm")
 	cmd.PersistentFlags().Bool("benchMeErtCORE", false, "performs a time complexity benchmarking of a ME-ERT-CORE algorithms")
 	// ToDo - this is to be done in the near future..
 	//cmd.PersistentFlags().Bool("benchErtCORE", false, "performs a time complexity benchmarking of a ERT-CORE algorithms")
-	cmd.PersistentFlags().IntVar(&iterations, "iterations", 100, "sets a number of iterations per single parameter set to perform")
+	cmd.PersistentFlags().IntVar(&iterations, "iterations", 25000, "sets a number of iterations per single parameter set to perform")
 	cmd.PersistentFlags().IntVar(&depth, "depth", 4, "sets a depth of a system model")
 	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 100, "number of applications to be deployed")
 	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 100, "maximum number of instances to be deployed by application")
-	cmd.PersistentFlags().StringVar(&benchFiles, "generateFigures", "", "generates figures based on the provided benchmarked data")
+	cmd.PersistentFlags().StringArrayVar(&benchFiles, "generateFigures", nil, "generates figures based on the provided benchmarked data")
+	cmd.PersistentFlags().Bool("docker", false, "indicates that the benchmarking is done in Docker container")
 	return cmd
 }
 
@@ -58,77 +58,78 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	example, _ := cmd.Flags().GetBool("example")
 	benchmark, _ := cmd.Flags().GetBool("benchmark")
 	hardcoded, _ := cmd.Flags().GetBool("hardcoded")
-	benchFMAS, _ := cmd.Flags().GetBool("benchFMAS")
+	benchFMAIS, _ := cmd.Flags().GetBool("benchFMAIS")
 	benchMeErtCORE, _ := cmd.Flags().GetBool("benchMeErtCORE")
 	//benchErtCORE, _ := cmd.Flags().GetBool("benchErtCORE")
 	// ToDo - do I need to read this flag or it is automatically read from the CLI??? I guess, the latter
 	iterations, _ = cmd.Flags().GetInt("iterations")
-	benchFiles, _ = cmd.Flags().GetString("generateFigures")
+	benchFiles, _ = cmd.Flags().GetStringArray("generateFigures")
+	docker, _ := cmd.Flags().GetBool("docker")
 
-	log.Printf("Starting fractal-mas\nExample: %v\nBenchmarking: %v\n"+
-		"Hardcoded: %v\nBenchmark Fractal MAS: %v\nBenchmark ME-ERT-CORE: %v\n"+
+	log.Printf("Starting fractal-mais\nExample: %v\nBenchmarking: %v\n"+
+		"Hardcoded: %v\nBenchmark Fractal MAIS: %v\nBenchmark ME-ERT-CORE: %v\n"+
 		"Depth: %v\nNumber of applications: %v\nMaximum number of instances per application: %v\n"+
-		"Data file provided: %v\n",
-		example, benchmark, hardcoded, benchFMAS, benchMeErtCORE,
-		depth, appNumber, maxNumInstances, benchFiles)
+		"Data file(s) provided: %v\nBenchmarked in Docker: %v\n",
+		example, benchmark, hardcoded, benchFMAIS, benchMeErtCORE,
+		depth, appNumber, maxNumInstances, benchFiles, docker)
 
 	if example {
 		generateExampleSystemModel()
 	}
 	if benchmark && hardcoded {
-		err := benchmarking.BenchSystemModelNoParam()
+		err := benchmarking.BenchSystemModelNoParam(docker)
 		if err != nil {
 			return err
 		}
-		err = benchmarking.BenchMeErtCORENoParam()
+		err = benchmarking.BenchMeErtCORENoParam(docker)
 		if err != nil {
 			return err
 		}
 	}
 	if benchmark && !hardcoded {
 		// ToDo - parse SystemModel flags first..
-		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
+		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations, docker)
 		if err != nil {
 			return err
 		}
-		err = benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations)
-		if err != nil {
-			return err
-		}
-	}
-	if benchFMAS && hardcoded {
-		err := benchmarking.BenchSystemModelNoParam()
+		err = benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations, docker)
 		if err != nil {
 			return err
 		}
 	}
-	if benchFMAS && !hardcoded {
-		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations)
+	if benchFMAIS && hardcoded {
+		err := benchmarking.BenchSystemModelNoParam(docker)
+		if err != nil {
+			return err
+		}
+	}
+	if benchFMAIS && !hardcoded {
+		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations, docker)
 		if err != nil {
 			return err
 		}
 	}
 	if benchMeErtCORE && hardcoded {
-		err := benchmarking.BenchMeErtCORENoParam()
+		err := benchmarking.BenchMeErtCORENoParam(docker)
 		if err != nil {
 			return err
 		}
 	}
 	if benchMeErtCORE && !hardcoded {
-		err := benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations)
+		err := benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations, docker)
 		if err != nil {
 			return err
 		}
 	}
 	//if benchErtCORE {
-	//	err := benchmarking.BenchErtCORE()
+	//	err := benchmarking.BenchErtCORE(docker)
 	//	if err != nil {
 	//		return err
 	//	}
 	//}
 
-	if benchFiles != "" {
-		err := draw.PlotFigures(benchFiles)
+	if benchFiles != nil {
+		err := draw.PlotFigures(benchFiles...)
 		if err != nil {
 			return err
 		}

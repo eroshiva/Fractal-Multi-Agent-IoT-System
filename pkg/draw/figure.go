@@ -2,6 +2,7 @@
 package draw
 
 import (
+	"fmt"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/storedata"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"gonum.org/v1/plot"
@@ -9,6 +10,7 @@ import (
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
 	"strconv"
+	"strings"
 )
 
 // DrawSystemModel draws a figure representing provided SystemModel. It is done in the following way:
@@ -88,8 +90,7 @@ func (d *Draw) DrawSystemModel(sm *systemmodel.SystemModel) error {
 }
 
 // PlotTimeComplexities plots all measured data (i.e., produces various figures)
-func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxAppNumber int, maxNumInstancesPerApp int) error {
-	//func PlotTimeComplexities(tc map[common.MapKey]float64, maxDepth int, maxAppNumber int, maxNumInstancesPerApp int) error {
+func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, prefix string) error {
 	// Firstly, convert the data into simple (X,Y) thing.
 	// We want to plot and showcase following dependencies:
 	// 1) Time complexity of the System Model based on its depth
@@ -108,7 +109,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	// plotting time complexity dependency based on depth
 	depthFigure := Draw{}
 	depthFigure.InitializeDrawStruct()
-	depthFigure.SetOutputFileName("time-complexity-depth-26-inst").SetFigureName("Time Complexity of Fractal MAS for 26 instances per App").
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-26-inst").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 26 instances per App").
 		SetYaxisName("Time [us]").SetXaxisName("Depth [-]")
 	var depthArr []int
 	for i := 1; i <= maxDepth; i++ {
@@ -120,14 +121,14 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-depth-56-inst").SetFigureName("Time Complexity of Fractal MAS for 56 instances per App")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-56-inst").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 56 instances per App")
 	lines = GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{56})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-depth-96-inst").SetFigureName("Time Complexity of Fractal MAS for 96 instances per App")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-96-inst").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 96 instances per App")
 	lines = GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{96})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
@@ -135,7 +136,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	}
 
 	//////// plotting dependencies for applications number
-	depthFigure.SetOutputFileName("time-complexity-apps-number-26-inst").SetFigureName("Time Complexity of Fractal MAS for 26 instances per App").
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-26-inst").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 26 instances per App").
 		SetYaxisName("Time [us]").SetXaxisName("Apps number [-]")
 	// iterating over the amount of apps in the system
 	var appArr []int
@@ -148,14 +149,14 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-apps-number-56-inst").SetFigureName("Time Complexity of Fractal MAS for 56 instances per App")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-56-inst").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 56 instances per App")
 	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{56})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-apps-number-96-inst").SetFigureName("Time Complexity of Fractal MAS for 96 instances per App")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-96-inst").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 96 instances per App")
 	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{96})
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
@@ -167,7 +168,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	for instNumber := 1; instNumber <= maxNumInstancesPerApp; instNumber += 5 {
 		instArr = append(instArr, instNumber)
 	}
-	depthFigure.SetOutputFileName("time-complexity-instances-per-app-26-apps").SetFigureName("Time Complexity of Fractal MAS for 26 Apps in MAIS").
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-26-apps").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 26 Apps in MAIS").
 		SetYaxisName("Time [us]").SetXaxisName("Instances (per App) [-]")
 	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{26}, instArr)
 	err = depthFigure.PlotTimeComplexity(lines)
@@ -175,21 +176,21 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-instances-per-app-56-apps").SetFigureName("Time Complexity of Fractal MAS for 56 Apps in MAIS")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-56-apps").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 56 Apps in MAIS")
 	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{56}, instArr)
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-instances-per-app-96-apps").SetFigureName("Time Complexity of Fractal MAS for 96 Apps in MAIS")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-96-apps").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 96 Apps in MAIS")
 	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{96}, instArr)
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
 		return err
 	}
 
-	depthFigure.SetOutputFileName("time-complexity-instances-per-app-1-apps").SetFigureName("Time Complexity of Fractal MAS for 1 App in MAIS")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-1-apps").SetFigureName(prefix + ": Time Complexity of Fractal MAIS for 1 App in MAIS")
 	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{1}, instArr)
 	err = depthFigure.PlotTimeComplexity(lines)
 	if err != nil {
@@ -213,7 +214,7 @@ func (d *Draw) PlotTimeComplexity(lines map[string]plotter.XYs) error {
 	// adding plotters for gathered lines to the figure
 	err := AddScattersAndLines(p, lines)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// Save the plot to a PNG file
@@ -241,7 +242,7 @@ func GetLinesForDepth(tc map[int]map[int]map[int]float64, depth []int, appNumber
 				line = append(line, xy)
 			}
 			// this is to store graphs legend..
-			key := "FMAS with " + strconv.Itoa(a) + " Apps and " + strconv.Itoa(i) + " instances (per App)"
+			key := "FMAIS with " + strconv.Itoa(a) + " Apps and " + strconv.Itoa(i) + " instances (per App)"
 			lines[key] = line
 		}
 	}
@@ -264,7 +265,7 @@ func GetLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNu
 				line = append(line, xy)
 			}
 			// this is to store graphs legend..
-			key := "FMAS of depth " + strconv.Itoa(d) + " and " + strconv.Itoa(i) + " instances (per App)"
+			key := "FMAIS of depth " + strconv.Itoa(d) + " and " + strconv.Itoa(i) + " instances (per App)"
 			lines[key] = line
 		}
 	}
@@ -287,7 +288,7 @@ func GetLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 				line = append(line, xy)
 			}
 			// this is to store graphs legend..
-			key := "FMAS of depth " + strconv.Itoa(d) + " and " + strconv.Itoa(a) + " Apps"
+			key := "FMAIS of depth " + strconv.Itoa(d) + " and " + strconv.Itoa(a) + " Apps"
 			lines[key] = line
 		}
 	}
@@ -296,23 +297,29 @@ func GetLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 }
 
 // PlotFigures function plots a figures for SystemModel for a provided data in file called fileName
-func PlotFigures(fileName string) error {
+func PlotFigures(fileNames ...string) error {
 
-	// ToDo - make a workaround with relative path..
-	// read the data first
-	data, err := storedata.ImportData("data/", fileName)
-	if err != nil {
-		return err
-	}
-	// parse SystemModel data
-	depth, apps, instances, err := systemmodel.GetSystemModelParameters(data)
-	if err != nil {
-		return nil
-	}
-	// plot figures
-	err = PlotTimeComplexities(data, depth, apps, instances)
-	if err != nil {
-		return err
+	for _, fileName := range fileNames {
+		// ToDo - make a workaround with relative path..
+		// read the data first
+		data, err := storedata.ImportData("data/", fileName)
+		if err != nil {
+			return err
+		}
+		// parse SystemModel data
+		depth, apps, instances, err := systemmodel.GetSystemModelParameters(data)
+		if err != nil {
+			return err
+		}
+
+		// cut out the file extension
+		name := strings.ReplaceAll(fileName, ".json", "")
+		name = strings.ReplaceAll(name, ".csv", "")
+		// plot figures
+		err = PlotTimeComplexities(data, depth, apps, instances, fmt.Sprintf("Generated %s", name))
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

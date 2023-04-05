@@ -35,17 +35,17 @@ var maxNumInstancesPerApp = 100
 var benchmarkedData map[int]map[int]map[int]float64
 var benchmarkedAvRel map[int]map[int]map[int]float64
 
-// BenchSystemModelNoParam function performs benchmarking of a Fractal MAS System Model and does not require input parameters
-func BenchSystemModelNoParam() error {
-	err := BenchSystemModel(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations)
+// BenchSystemModelNoParam function performs benchmarking of a Fractal MAIS System Model and does not require input parameters
+func BenchSystemModelNoParam(docker bool) error {
+	err := BenchSystemModel(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations, docker)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// BenchSystemModel function performs benchmarking of a Fractal MAS System Model
-func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int) error {
+// BenchSystemModel function performs benchmarking of a Fractal MAIS System Model
+func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int, docker bool) error {
 	// initializing some variables to gather statistics
 	var maxNumIncs int64 = -1
 	var appMax, depthMax, instMax int
@@ -62,7 +62,7 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 			benchmarkedData[depth][appNumber] = make(map[int]float64, 0)
 			// iterating over the range of the minimum and maximum number of instances deployed by application
 			for maxNumInstances := 1; maxNumInstances <= maxNumInstancesPerApp+1; maxNumInstances += 5 {
-				log.Printf("Fractal MAS benchmarking: %d iterations over Depth %v, App number %v, Number of instances %v\n", numIterations, depth, appNumber, maxNumInstances)
+				log.Printf("Fractal MAIS benchmarking: %d iterations over Depth %v, App number %v, Number of instances %v\n", numIterations, depth, appNumber, maxNumInstances)
 				// setting timer to 0
 				timer = 0
 				for iteration := 0; iteration < numIterations; iteration++ {
@@ -96,43 +96,52 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 						instMax = maxNumInstances
 					}
 				}
-				log.Printf("Fractal MAS benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer)/float64(numIterations), timer, numIterations)
+				log.Printf("Fractal MAIS benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer)/float64(numIterations), timer, numIterations)
 				benchmarkedData[depth][appNumber][maxNumInstances] = float64(timer) / float64(numIterations)
 			}
 		}
 	}
-	log.Printf("Fractal MAS benchmarking: Maximum number of instances is %v. It was for depth %v, number applications %v, instances per app %v.\n",
+	log.Printf("Fractal MAIS benchmarking: Maximum number of instances is %v. It was for depth %v, number applications %v, instances per app %v.\n",
 		maxNumIncs, depthMax, appMax, instMax)
 	// storing data in a map
 	maxNumInst[depthMax] = make(map[int]map[int]float64, 0)
 	maxNumInst[depthMax][appMax] = make(map[int]float64, 0)
 	maxNumInst[depthMax][appMax][instMax] = float64(maxNumIncs)
-	log.Printf("Fractal MAS benchmarking: Maximum amount of allocated memory is %v MB. It was for depth %v, number applications %v, instances per app %v."+
+	log.Printf("Fractal MAIS benchmarking: Maximum amount of allocated memory is %v MB. It was for depth %v, number applications %v, instances per app %v."+
 		" Number of instances at this point was %v.\n",
 		allocBytes, allocDepthMax, allocAppMax, allocInstMax, allocTotalInstances)
 
 	// get current time to format a filename
 	ct := time.Now()
-	err := storedata.SaveData(benchmarkedData, "benchmark_fmas_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
-	if err != nil {
-		log.Panicf("Fractal MAS benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
+	// making a string with timestamp
+	ts := ct.Format(time.DateOnly) + "_" + ct.Format(time.TimeOnly)
+	if docker {
+		ts = "docker_" + ts
 	}
-	err = storedata.SaveData(maxNumInst, "maxNumInstances_fmas_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
+	err := storedata.SaveData(benchmarkedData, "benchmark_fmais_"+ts)
 	if err != nil {
-		log.Panicf("Fractal MAS benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
+		log.Panicf("Fractal MAIS benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
+	}
+	err = storedata.SaveData(maxNumInst, "maxNumInstances_fmais_"+ts)
+	if err != nil {
+		log.Panicf("Fractal MAIS benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
 	}
 
-	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp)
+	prefix := "FMAIS"
+	if docker {
+		prefix = "Docker_" + prefix
+	}
+	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix)
 	if err != nil {
-		log.Panicf("Fractal MAS benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
+		log.Panicf("Fractal MAIS benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
 	}
 
 	return nil
 }
 
 // BenchMeErtCORENoParam function performs benchmarking of a ME-ERT-CORE Reliability Model and does not require input parameters
-func BenchMeErtCORENoParam() error {
-	err := BenchMeErtCORE(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations)
+func BenchMeErtCORENoParam(docker bool) error {
+	err := BenchMeErtCORE(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations, docker)
 	if err != nil {
 		return err
 	}
@@ -140,7 +149,7 @@ func BenchMeErtCORENoParam() error {
 }
 
 // BenchMeErtCORE function performs benchmarking of a ME-ERT-CORE reliability model
-func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int) error {
+func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int, docker bool) error {
 	// initializing some variables to gather statistics
 	var maxNumIncs int64 = -1
 	var appMaxInst, depthMaxInst, instMaxInst int
@@ -235,7 +244,7 @@ func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, n
 			}
 		}
 	}
-	log.Printf("Fractal MAS benchmarking: Maximum number of instances is %v. It was for depth %v, number applications %v, instances per app %v.\n",
+	log.Printf("Fractal MAIS benchmarking: Maximum number of instances is %v. It was for depth %v, number applications %v, instances per app %v.\n",
 		maxNumIncs, depthMaxInst, appMaxInst, instMaxInst)
 	// storing data in a map
 	maxNumInst[depthMaxInst] = make(map[int]map[int]float64, 0)
@@ -254,28 +263,37 @@ func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, n
 
 	// get current time to format a filename
 	ct := time.Now()
-	err := storedata.SaveData(benchmarkedData, "benchmark_meertcore_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
+	// making a string with timestamp
+	ts := ct.Format(time.DateOnly) + "_" + ct.Format(time.TimeOnly)
+	if docker {
+		ts = "docker_" + ts
+	}
+	err := storedata.SaveData(benchmarkedData, "benchmark_meertcore_"+ts)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
 	}
-	err = storedata.SaveData(maxNumInst, "maxNumInstances_meertcore_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
+	err = storedata.SaveData(maxNumInst, "maxNumInstances_meertcore_"+ts)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE benchmarking: Something went wrong when storing maximum number of instnace... %v\n", err)
 	}
-	err = storedata.SaveData(benchmarkedAvRel, "benchmark_average_reliability_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
+	err = storedata.SaveData(benchmarkedAvRel, "benchmark_average_reliability_"+ts)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE benchmarking: Something went wrong when storing bechmarked average reliabilities data... %v\n", err)
 	}
-	err = storedata.SaveData(benchmarkedMaxRel, "benchmark_maximum_reliability_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
+	err = storedata.SaveData(benchmarkedMaxRel, "benchmark_maximum_reliability_"+ts)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE benchmarking: Something went wrong when storing bechmarked maximum reliabilities data... %v\n", err)
 	}
-	err = storedata.SaveData(benchmarkedMinRel, "benchmark_minimum_reliability_"+ct.Format(time.DateOnly)+"_"+ct.Format(time.TimeOnly))
+	err = storedata.SaveData(benchmarkedMinRel, "benchmark_minimum_reliability_"+ts)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE benchmarking: Something went wrong when storing bechmarked minimum reliabilities data... %v\n", err)
 	}
 
-	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp)
+	prefix := "MeErtCore"
+	if docker {
+		prefix = "Docker_" + prefix
+	}
+	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
 	}

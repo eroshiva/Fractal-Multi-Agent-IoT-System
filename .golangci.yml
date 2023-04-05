@@ -10,5 +10,10 @@ linters:
     - unconvert
     - nakedret
     - exportloopref
+    - dupl
+    - decorder
+    - errorlint
+    - nilerr
+    - nilnil
 issues:
   exclude-use-default: false

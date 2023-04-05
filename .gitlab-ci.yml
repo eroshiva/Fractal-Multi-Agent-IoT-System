@@ -11,19 +11,13 @@ stages:
   - build
   - test
 
-# some pre-set before executing CI
-#before_script:
-#  - go get github.com/tools/godep
-#  - cp -r /builds/user /go/src/github.com/user/
-#  - cd /go/src/github.com/user/repo
-
 # build Go binaries
 build-this-repo:
   stage: build
   script:
     - make build
 
-# run tests
+# run unit tests and build image
 test-this-repo:
   stage: test
   script:
