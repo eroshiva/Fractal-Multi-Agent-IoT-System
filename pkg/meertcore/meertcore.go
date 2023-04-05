@@ -12,7 +12,7 @@ type MeErtCore struct {
 	Reliability float64                  // contains Reliability of the System Model
 }
 
-// ComputeReliabilityPerDefinition computes reliability of Fractal MAS (i.e., System Model), per canonical definition
+// ComputeReliabilityPerDefinition computes reliability of Fractal MAIS (i.e., System Model), per canonical definition
 func (me *MeErtCore) ComputeReliabilityPerDefinition() (float64, error) {
 	// no need to iterate over the last layer - reliabilities of all instances should be present for our disposal
 	for d := len(me.SystemModel.Layers) - 1; d > 0; d-- {
@@ -22,11 +22,11 @@ func (me *MeErtCore) ComputeReliabilityPerDefinition() (float64, error) {
 			return 0.0, fmt.Errorf("couldn't extract layer %d out of the System Model", d)
 		}
 		for _, inst := range layer.Instances {
-			var instRel float64
+			var instRel float64 // there would be resulting reliability of an instance
 			// if we are on the last layer,
 			// there is nothing to do - reliabilities should all be set.
 			// if we are not on the last layer, we are
-			// iterating over relations and computing reliability of an instance
+			// iterating over the instance relations and computing reliability of an instance
 			if len(inst.Relations) != 0 {
 				for _, rel := range inst.Relations {
 					reliability, err := rel.GetReliability()
@@ -48,23 +48,23 @@ func (me *MeErtCore) ComputeReliabilityPerDefinition() (float64, error) {
 						if !okie {
 							return 0, fmt.Errorf("couldn't extract application with a key %s", appName)
 						}
-						coef, err := app.GetPriority()
+						appInstancePriority, err := app.GetPriority()
 						if err != nil {
 							return 0, err
 						}
 
-						instRel += reliability * priority * coef
+						instRel += reliability * priority * appInstancePriority
 					} else { // Treating the VI case
 						app, okie := me.SystemModel.Applications["VI"]
 						if !okie {
 							return 0, fmt.Errorf("couldn't extract VI from an application dictionary")
 						}
-						coef, err := app.GetPriority()
+						viPriority, err := app.GetPriority()
 						if err != nil {
 							return 0, err
 						}
 
-						instRel += reliability * priority * coef
+						instRel += reliability * priority * viPriority
 					}
 				}
 				// setting computed reliability to the instance

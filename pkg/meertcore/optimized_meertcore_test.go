@@ -8,12 +8,14 @@ import (
 
 func TestTotalReliability(t *testing.T) {
 	// creating a sample System Model with two VIs and two Applications running
-	systemModel := systemmodel.CreateExampleBasicFMAS()
+	systemModel := systemmodel.CreateExampleBasicFMAIS()
+	err := systemModel.SetChainCoefficients()
+	assert.NilError(t, err)
 	t.Logf("System model is\n%v", systemModel)
 
 	systemModel.SetApplicationPrioritiesRandom()
 	systemModel.PrettyPrintLayers()
-	err := systemModel.SetInstancePrioritiesRandom()
+	err = systemModel.SetInstancePrioritiesRandom()
 	assert.NilError(t, err)
 	err = systemModel.SetInstanceReliabilitiesRandom()
 	assert.NilError(t, err)

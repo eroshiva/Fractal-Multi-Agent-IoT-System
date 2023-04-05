@@ -5,6 +5,7 @@ package storedata
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -114,7 +115,7 @@ func importDataFromCSV(path, filename string) (map[int]map[int]map[int]float64, 
 	// reading a file
 	for {
 		rec, err := csvReader.Read()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 		if err != nil {
@@ -177,8 +178,8 @@ func SaveData(benchmarkedData map[int]map[int]map[int]float64, name string) erro
 		return err
 	}
 
-	err = exportDataToCSV("data/", name, benchmarkedData, "Fractal MAS Depth [-]",
-		"Application Number in Fractal MAS [-]", "Maximum Number of Instances Deployed by Application [-]",
+	err = exportDataToCSV("data/", name, benchmarkedData, "Fractal MAIS Depth [-]",
+		"Application Number in Fractal MAIS [-]", "Maximum Number of Instances Deployed by Application [-]",
 		"Time [ns]")
 	if err != nil {
 		log.Panicf("Something went wrong during storing of the data in CSV file... %v\n", err)

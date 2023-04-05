@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSingleInstanceFMAS(t *testing.T) {
+func TestSingleInstanceFMAIS(t *testing.T) {
 	systemModel := &systemmodel.SystemModel{}
 
 	systemModel.InitializeSystemModel(10, 4)
@@ -35,7 +35,7 @@ func TestSingleInstanceFMAS(t *testing.T) {
 
 func TestComputeReliabilityPerDefinition(t *testing.T) {
 	// creating a sample System Model with two VIs and two Applications running
-	systemModel := systemmodel.CreateExampleBasicFMAS()
+	systemModel := systemmodel.CreateExampleBasicFMAIS()
 	t.Logf("System model is\n%v", systemModel)
 
 	// Compute total reliability of the system
@@ -55,7 +55,9 @@ func TestComputeReliabilityPerDefinition(t *testing.T) {
 
 func TestComputeReliabilityOptimized(t *testing.T) {
 	// creating a sample System Model with two VIs and two Applications running
-	systemModel := systemmodel.CreateExampleBasicFMAS()
+	systemModel := systemmodel.CreateExampleBasicFMAIS()
+	err := systemModel.SetChainCoefficients()
+	assert.NilError(t, err)
 	t.Logf("System model is\n%v", systemModel)
 
 	// Compute total reliability of the system

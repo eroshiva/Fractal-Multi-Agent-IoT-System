@@ -49,7 +49,7 @@ func Test_exportDataToCSV(t *testing.T) {
 	data[100][20][31] = 3.1457
 
 	// exporting data
-	err := exportDataToCSV(path, filename, data, "Fractal MAS Depth [-]", "Application Number in Fractal MAS [-]",
+	err := exportDataToCSV(path, filename, data, "Fractal MAIS Depth [-]", "Application Number in Fractal MAIS [-]",
 		"Maximum Number of Instances Deployed by Application [-]", "Time [ns]")
 	assert.NilError(t, err)
 }

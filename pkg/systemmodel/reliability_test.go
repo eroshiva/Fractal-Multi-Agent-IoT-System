@@ -7,7 +7,7 @@ import (
 
 func TestGatherApplicationReliabilities(t *testing.T) {
 	// creating a sample System Model with two VIs and two Applications running
-	systemModel := CreateExampleBasicFMAS()
+	systemModel := CreateExampleBasicFMAIS()
 	t.Logf("System model is\n%v", systemModel)
 
 	systemModel.SetApplicationPrioritiesRandom()

@@ -1,14 +1,14 @@
-// Package systemmodel implements basic functionality to compose a Fractal MAS system. This file implements a utility
-// function, which defines a very basic example of a Fractal MAS system.
+// Package systemmodel implements basic functionality to compose a Fractal MAIS system. This file implements a utility
+// function, which defines a very basic example of a Fractal MAIS system.
 package systemmodel
 
-// CreateExampleBasicFMAS implements an utility function which creates a very basic Fractal MAS system
+// CreateExampleBasicFMAIS implements an utility function which creates a very basic Fractal MAIS system
 // with 4 VIs and 2 Applications. Here is a detailed description
 // - Second level deploys two VIs and Application#1 (of 3 instances)
 // - Third level deploys:
 //   - two VIs, which are connected to the second VI on the second level
 //   - Application#2 (of 5 instances) which is connected to the first VI on the second level
-func CreateExampleBasicFMAS() *SystemModel {
+func CreateExampleBasicFMAIS() *SystemModel {
 	systemModel := &SystemModel{}
 	systemModel.InitializeSystemModel(10, 4)
 	systemModel.InitializeRootLayer()
