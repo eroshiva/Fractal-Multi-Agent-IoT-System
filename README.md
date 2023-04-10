@@ -73,7 +73,15 @@ To see a full set of input parameters, run `build/_output/fractal-mais --help`.
 The experiment was performed on the UpBoard with 8 Gb of RAM and four-cores and four-thread Intel
 Atom® x7-E3950 CPU.
 
-Results are stored inside the `data/` directory.
+Results are stored inside the `data/` directory. You can find here following files:
+- `benchmark_fmais_*` - stores measured time of FMAIS System Model generation
+- `maxNumInstances_fmais_*` - stores maximum number of instances generated during FMAIS benchmarking
+- `benchmark_meertcore_*` - stores measured time of ME-ERT-CORE computation
+- `benchmark_average_reliability_*` - stores average reliability for given input FMAIS data (i.e., depth, maximum number of
+applications, maximum number of instances per application)
+- `benchmark_maximum_reliability_*` - stores maximum computed reliability during ME-ERT-CORE benchmarking
+- `benchmark_minimum_reliability_*` - stores minimum computed reliability during ME-ERT-CORE benchmarking
+- `maxNumInstances_meertcore_*` - stores maximum number of instances generated during ME-ERT-CORE benchmarking
 
 During the experiment, measured time for FMAIS generation was around **XxX** μs, for ME-ERT-CORE it is around **XxX** μs. 
 

@@ -69,9 +69,6 @@ func TestComputeReliabilityOptimized(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Assert(t, totalRel != -1.23456789)
 	assert.Equal(t, fmt.Sprintf("%.12f", totalRel), "0.155589687500")
-
-	systemModel.PrettyPrintApplications()
-	systemModel.PrettyPrintLayers()
 	t.Logf("Total reliability of the system is: %v\n", fmt.Sprintf("%.12f", totalRel))
 
 	// computing reliability with optimized algorithm
@@ -86,4 +83,7 @@ func TestComputeReliabilityOptimized(t *testing.T) {
 	totalRel1, err1 := me.ComputeReliabilityOptimized()
 	assert.NilError(t, err1)
 	t.Logf("Computed (with optimized algo) reliability is %v\n", totalRel1)
+
+	systemModel.PrettyPrintApplications()
+	systemModel.PrettyPrintLayers()
 }
