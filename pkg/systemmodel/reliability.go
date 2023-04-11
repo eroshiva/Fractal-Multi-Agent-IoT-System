@@ -380,8 +380,51 @@ func (i *Instance) GetChainCoefficient() (float64, error) {
 // SetChainCoefficientForInstance gathers all coefficient in a SystemModel tree on top of the instance
 func (sm *SystemModel) SetChainCoefficientForInstance(instName string) error {
 
-	// this is to hold chain coefficient value
+	// getting an Instance object to add Chain Coefficient
+	inst, err := sm.GetInstance(instName)
+	if err != nil {
+		return fmt.Errorf("instance %s was not found in SystemModel: %w", instName, err)
+	}
+
+	// this is to hold the chain coefficient value
 	var cc float64 = 1
+
+	// this is to hold priority of the Application/VI
+	var viPriority float64
+	// obtaining VI priority
+	viInst, ok := sm.Applications["VI"]
+	if !ok {
+		sm.PrettyPrintApplications().PrettyPrintLayers()
+		return fmt.Errorf("couldn't find VI in the Applications map")
+	}
+	viPriority, err = viInst.GetPriority()
+	if err != nil {
+		sm.PrettyPrintApplications().PrettyPrintLayers()
+		return err
+	}
+
+	// include priority of a VI or Application in the Chain Coefficient
+	if inst.IsVI() {
+		// treating VI case
+		cc *= viPriority
+	} else {
+		// treating Application case
+		appName, err := inst.GetAppName()
+		if err != nil {
+			sm.PrettyPrintApplications().PrettyPrintLayers()
+			return err
+		}
+		appInst, ok := sm.Applications[appName]
+		if !ok {
+			sm.PrettyPrintApplications().PrettyPrintLayers()
+			return fmt.Errorf("couldn't find %s in the Applications map", appName)
+		}
+		pr, err := appInst.GetPriority()
+		if err != nil {
+			return err
+		}
+		cc *= pr
+	}
 
 	targetInst := instName // this is to hold an instance name, which has in its relation a required instance
 	// compute chain coefficient
@@ -399,17 +442,16 @@ func (sm *SystemModel) SetChainCoefficientForInstance(instName string) error {
 						return err
 					}
 					cc *= instPriority
+					if v.IsVI() {
+						cc *= viPriority
+					}
 					targetInst = v.Name
 				}
 			}
 		}
 	}
 
-	// set chain coefficient
-	inst, err := sm.GetInstance(instName)
-	if err != nil {
-		return fmt.Errorf("instance %s was not found in SystemModel: %w", instName, err)
-	}
+	// set the chain coefficient
 	inst.SetChainCoefficient(cc)
 
 	return nil

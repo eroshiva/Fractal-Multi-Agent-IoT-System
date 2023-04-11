@@ -73,7 +73,7 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 					sm.InitializeSystemModel(appNumber, depth)
 					sm.CreateRandomApplications(names, 1, maxNumInstances)
 					start := time.Now()
-					sm.GenerateSystemModel()
+					sm.GenerateSystemModel() // generates FMAIS System Model without any parameters (requires additional parsing = some code refactoring, complexity stays the same)
 					duration := time.Since(start)
 					// we know that it's going to be a positive number
 					timer += uint64(duration.Microseconds()) // taking microseconds

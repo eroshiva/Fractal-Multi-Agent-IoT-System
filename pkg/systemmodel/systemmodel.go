@@ -60,12 +60,25 @@ func (sm *SystemModel) InitializeSystemModel(numApps int, depth int) *SystemMode
 	return sm
 }
 
-// CreateInstance creates an instance with given name and instance type
+// CreateInstance creates an empty Instance with given name and instance type
 func (i *Instance) CreateInstance(name string, tp InstanceType) *Instance {
 	i.Name = name
 	i.Type = tp
 	i.Relations = make([]*Instance, 0)
 	i.Aspect = make(map[string]string, 0)
+	return i
+}
+
+// CreateInstanceRnd creates an Instance with given name, instance type and random parameters (priority and chain coefficient)
+func (i *Instance) CreateInstanceRnd(name string, tp InstanceType, cc float64) *Instance {
+	i.Name = name
+	i.Type = tp
+	i.Relations = make([]*Instance, 0)
+	// setting some aspects
+	i.Aspect = make(map[string]string, 0)
+	priority := rand.Float64()
+	i.SetPriority(priority)
+	i.SetChainCoefficient(cc * priority)
 	return i
 }
 
