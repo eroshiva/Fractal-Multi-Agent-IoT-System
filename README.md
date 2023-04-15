@@ -83,7 +83,11 @@ applications, maximum number of instances per application)
 - `benchmark_minimum_reliability_*` - stores minimum computed reliability during ME-ERT-CORE benchmarking
 - `maxNumInstances_meertcore_*` - stores maximum number of instances generated during ME-ERT-CORE benchmarking
 
-During the experiment, measured time for FMAIS generation was around **XxX** μs, for ME-ERT-CORE it is around **XxX** μs. 
+During the experiment, measured time for FMAIS generation of depth `4` with `81` application and `101` instances per application
+was **90.887** ms. It took **48.434** ms to compute the reliability of this system with ME-ERT-CORE (per definition). 
+Fractal MAIS system model at this iteration contained `1'009'669` instances.
+
+Figures illustrating measured time complexity of the FMAIS can be found under `figures/` directory.
 
 To learn more, refer to the publication **leave a reference to the upcoming publication here!!**.
 
