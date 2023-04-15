@@ -180,7 +180,7 @@ func SaveData(benchmarkedData map[int]map[int]map[int]float64, name string) erro
 
 	err = exportDataToCSV("data/", name, benchmarkedData, "Fractal MAIS Depth [-]",
 		"Application Number in Fractal MAIS [-]", "Maximum Number of Instances Deployed by Application [-]",
-		"Time [ns]")
+		"Time [us]")
 	if err != nil {
 		log.Panicf("Something went wrong during storing of the data in CSV file... %v\n", err)
 		return err

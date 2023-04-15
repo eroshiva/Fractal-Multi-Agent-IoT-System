@@ -16,7 +16,7 @@ var depth int
 var appNumber int
 var iterations int
 var maxNumInstances int
-var benchFiles []string
+var genFig []string
 
 // The main entry point
 func main() {
@@ -48,7 +48,7 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().IntVar(&depth, "depth", 4, "sets a depth of a system model")
 	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 100, "number of applications to be deployed")
 	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 100, "maximum number of instances to be deployed by application")
-	cmd.PersistentFlags().StringArrayVar(&benchFiles, "generateFigures", nil, "generates figures based on the provided benchmarked data")
+	cmd.PersistentFlags().StringArrayVar(&genFig, "generateFigures", nil, "generates figures based on the provided benchmarked data")
 	cmd.PersistentFlags().Bool("docker", false, "indicates that the benchmarking is done in Docker container")
 	return cmd
 }
@@ -63,7 +63,7 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	//benchErtCORE, _ := cmd.Flags().GetBool("benchErtCORE")
 	// ToDo - do I need to read this flag or it is automatically read from the CLI??? I guess, the latter
 	iterations, _ = cmd.Flags().GetInt("iterations")
-	benchFiles, _ = cmd.Flags().GetStringArray("generateFigures")
+	genFig, _ = cmd.Flags().GetStringArray("generateFigures")
 	docker, _ := cmd.Flags().GetBool("docker")
 
 	log.Printf("Starting fractal-mais\nExample: %v\nBenchmarking: %v\n"+
@@ -71,7 +71,7 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 		"Depth: %v\nNumber of applications: %v\nMaximum number of instances per application: %v\n"+
 		"Data file(s) provided: %v\nBenchmarked in Docker: %v\n",
 		example, benchmark, hardcoded, benchFMAIS, benchMeErtCORE,
-		depth, appNumber, maxNumInstances, benchFiles, docker)
+		depth, appNumber, maxNumInstances, genFig, docker)
 
 	if example {
 		generateExampleSystemModel()
@@ -128,8 +128,8 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	//	}
 	//}
 
-	if benchFiles != nil {
-		err := draw.PlotFigures(benchFiles...)
+	if genFig != nil {
+		err := draw.PlotFigures(genFig...)
 		if err != nil {
 			return err
 		}
