@@ -39,7 +39,7 @@ gobench: build install-gobenchdata ## Benchmark the codebase with gobench
 	cd data && gobenchdata web serve
 
 generate-figures: build ## Generates figures based on the benchmarked data. It needs an exact name of the file carrying data!
-	./build/_output/fractal-mais --generateFigures benchmark_fmais_2023-03-26_01:59:08.json --generateFigures benchmark_meertcore_2023-04-04_21:14:18.csv
+	./build/_output/fractal-mais --generateFigures benchmark_fmais_2023-03-26_01-59-08.json --generateFigures benchmark_meertcore_2023-04-04_21-14-18.csv
 
 linters-install: ## Install linters locally for verification
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin ${GOLANGCI_LINTERS_VERSION}

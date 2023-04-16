@@ -13,6 +13,11 @@ import (
 	"strings"
 )
 
+const refScale = 1.75 * 1.5
+const unitLabels = vg.Centimeter
+const fontsizeLabels = refScale * unitLabels * 2 / 3
+const fontsizeLegend = refScale * unitLabels / 2
+
 // DrawSystemModel draws a figure representing provided SystemModel. It is done in the following way:
 //
 //	Iterate over layers, over each node in the layer.
@@ -204,11 +209,25 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 func (d *Draw) PlotTimeComplexity(lines map[string]plotter.XYs) error {
 
 	p := plot.New()
-	// setting basic information
+	// setting Figure name and its parameters
 	p.Title.Text = d.FigureName
+	p.Title.TextStyle.Font.Size = fontsizeLabels // set the size of Figure name
+
+	// setting X-Axis name and its parameters
 	p.X.Label.Text = d.XaxisName
+	p.X.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the X label
+	p.X.Tick.Label.Font.Size = fontsizeLegend      // set the size of the X-axis numbers
+
+	// setting Y-axis name and its parameters
 	p.Y.Label.Text = d.YaxisName
-	// adding grid
+	p.Y.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the Y label
+	p.Y.Tick.Label.Font.Size = fontsizeLegend      // set the size of the Y-axis numbers
+
+	// setting Legend parameters
+	p.Legend.YOffs = vg.Inch                      // place a legend a bit up
+	p.Legend.TextStyle.Font.Size = fontsizeLegend // setting size of a Legend
+
+	// adding grid to the figure
 	p.Add(plotter.NewGrid())
 
 	// adding plotters for gathered lines to the figure
@@ -219,6 +238,9 @@ func (d *Draw) PlotTimeComplexity(lines map[string]plotter.XYs) error {
 
 	// Save the plot to a PNG file
 	// ToDo - implement a relative path to enable execution out of everywhere in the system..
+	if err := p.Save(d.XLength, d.YLength, "figures/"+d.OutputFileName+".eps"); err != nil {
+		return err
+	}
 	if err := p.Save(d.XLength, d.YLength, "figures/"+d.OutputFileName+".png"); err != nil {
 		return err
 	}

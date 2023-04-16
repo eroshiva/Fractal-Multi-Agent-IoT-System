@@ -12,6 +12,9 @@ import (
 	"strings"
 )
 
+const unitLines = vg.Millimeter
+const linewidth = refScale * unitLines
+
 // Draw structure holds all necessary information for plotting a figure of SystemModel
 type Draw struct {
 	Rendered       bool      // indicates whether a figure was rendered or not
@@ -279,6 +282,7 @@ func AddScattersAndLines(plt *plot.Plot, vs ...interface{}) error {
 				if err != nil {
 					return err
 				}
+				l.Width = linewidth
 				l.Color = plotutil.Color(i)
 				l.Dashes = plotutil.Dashes(i)
 				ps = append(ps, l)
