@@ -53,6 +53,8 @@ are stored in corresponding directories
 - `make test` - runs unit tests for this repository
 - `make gobench` - runs a benchmark with a `gobench` (this option is experimental and **DO NOT** cover the whole measurement!!)
 
+To see all options, please refer to `make help`.
+
 Currently, benchmarking is configured with following parameters:
 - `iterations` is equal to `25'000` (specifies number of iterations performed for each parameter set, this is to isolate 
 an OS resource fluctuation)
