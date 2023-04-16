@@ -9,6 +9,7 @@ import (
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -115,6 +116,7 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 	ct := time.Now()
 	// making a string with timestamp
 	ts := ct.Format(time.DateOnly) + "_" + ct.Format(time.TimeOnly)
+	ts = strings.ReplaceAll(ts, ":", "-")
 	if docker {
 		ts = "docker_" + ts
 	}
@@ -265,6 +267,7 @@ func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, n
 	ct := time.Now()
 	// making a string with timestamp
 	ts := ct.Format(time.DateOnly) + "_" + ct.Format(time.TimeOnly)
+	ts = strings.ReplaceAll(ts, ":", "-")
 	if docker {
 		ts = "docker_" + ts
 	}
