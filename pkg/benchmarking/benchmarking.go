@@ -37,8 +37,8 @@ var benchmarkedData map[int]map[int]map[int]float64
 var benchmarkedAvRel map[int]map[int]map[int]float64
 
 // BenchSystemModelNoParam function performs benchmarking of a Fractal MAIS System Model and does not require input parameters
-func BenchSystemModelNoParam(docker bool) error {
-	err := BenchSystemModel(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations, docker)
+func BenchSystemModelNoParam(docker, greyScale bool) error {
+	err := BenchSystemModel(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations, docker, greyScale)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func BenchSystemModelNoParam(docker bool) error {
 }
 
 // BenchSystemModel function performs benchmarking of a Fractal MAIS System Model
-func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int, docker bool) error {
+func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int, docker, greyScale bool) error {
 	// initializing some variables to gather statistics
 	var maxNumIncs int64 = -1
 	var appMax, depthMax, instMax int
@@ -133,7 +133,7 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 	if docker {
 		prefix = "Docker_" + prefix
 	}
-	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix)
+	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix, greyScale, false)
 	if err != nil {
 		log.Panicf("Fractal MAIS benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
 	}
@@ -142,8 +142,8 @@ func BenchSystemModel(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int,
 }
 
 // BenchMeErtCORENoParam function performs benchmarking of a ME-ERT-CORE Reliability Model and does not require input parameters
-func BenchMeErtCORENoParam(docker bool) error {
-	err := BenchMeErtCORE(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations, docker)
+func BenchMeErtCORENoParam(docker, greyScale bool) error {
+	err := BenchMeErtCORE(maxDepth, maxAppNumber, maxNumInstancesPerApp, numIterations, docker, greyScale)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func BenchMeErtCORENoParam(docker bool) error {
 }
 
 // BenchMeErtCORE function performs benchmarking of a ME-ERT-CORE reliability model
-func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int, docker bool) error {
+func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, numIterations int, docker, greyScale bool) error {
 	// initializing some variables to gather statistics
 	var maxNumIncs int64 = -1
 	var appMaxInst, depthMaxInst, instMaxInst int
@@ -296,7 +296,7 @@ func BenchMeErtCORE(maxDepth int, maxAppNumber int, maxNumInstancesPerApp int, n
 	if docker {
 		prefix = "Docker_" + prefix
 	}
-	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix)
+	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix, greyScale, true)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
 	}

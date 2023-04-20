@@ -50,6 +50,7 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 100, "maximum number of instances to be deployed by application")
 	cmd.PersistentFlags().StringArrayVar(&genFig, "generateFigures", nil, "generates figures based on the provided benchmarked data")
 	cmd.PersistentFlags().Bool("docker", false, "indicates that the benchmarking is done in Docker container")
+	cmd.PersistentFlags().Bool("greyScale", false, "indicates that the plotter should generate figures in grey scale")
 	return cmd
 }
 
@@ -65,6 +66,7 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	iterations, _ = cmd.Flags().GetInt("iterations")
 	genFig, _ = cmd.Flags().GetStringArray("generateFigures")
 	docker, _ := cmd.Flags().GetBool("docker")
+	greyScale, _ := cmd.Flags().GetBool("greyScale")
 
 	log.Printf("Starting fractal-mais\nExample: %v\nBenchmarking: %v\n"+
 		"Hardcoded: %v\nBenchmark Fractal MAIS: %v\nBenchmark ME-ERT-CORE: %v\n"+
@@ -77,46 +79,46 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 		generateExampleSystemModel()
 	}
 	if benchmark && hardcoded {
-		err := benchmarking.BenchSystemModelNoParam(docker)
+		err := benchmarking.BenchSystemModelNoParam(docker, greyScale)
 		if err != nil {
 			return err
 		}
-		err = benchmarking.BenchMeErtCORENoParam(docker)
+		err = benchmarking.BenchMeErtCORENoParam(docker, greyScale)
 		if err != nil {
 			return err
 		}
 	}
 	if benchmark && !hardcoded {
 		// ToDo - parse SystemModel flags first..
-		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations, docker)
+		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations, docker, greyScale)
 		if err != nil {
 			return err
 		}
-		err = benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations, docker)
+		err = benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations, docker, greyScale)
 		if err != nil {
 			return err
 		}
 	}
 	if benchFMAIS && hardcoded {
-		err := benchmarking.BenchSystemModelNoParam(docker)
+		err := benchmarking.BenchSystemModelNoParam(docker, greyScale)
 		if err != nil {
 			return err
 		}
 	}
 	if benchFMAIS && !hardcoded {
-		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations, docker)
+		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations, docker, greyScale)
 		if err != nil {
 			return err
 		}
 	}
 	if benchMeErtCORE && hardcoded {
-		err := benchmarking.BenchMeErtCORENoParam(docker)
+		err := benchmarking.BenchMeErtCORENoParam(docker, greyScale)
 		if err != nil {
 			return err
 		}
 	}
 	if benchMeErtCORE && !hardcoded {
-		err := benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations, docker)
+		err := benchmarking.BenchMeErtCORE(depth, appNumber, maxNumInstances, iterations, docker, greyScale)
 		if err != nil {
 			return err
 		}
@@ -129,7 +131,7 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	//}
 
 	if genFig != nil {
-		err := draw.PlotFigures(genFig...)
+		err := draw.PlotFigures(greyScale, genFig...)
 		if err != nil {
 			return err
 		}
