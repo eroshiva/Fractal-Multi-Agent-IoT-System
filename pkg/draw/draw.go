@@ -262,7 +262,7 @@ func AddScattersSquare(plt *plot.Plot, vs ...interface{}) error {
 //
 // If an error occurs then none of the plotters are added
 // to the plot, and the error is returned.
-func AddScattersAndLines(plt *plot.Plot, vs ...interface{}) error {
+func AddScattersAndLines(plt *plot.Plot, greyScale bool, vs ...interface{}) error {
 	var ps []plot.Plotter
 	var items []item1
 	var i int
@@ -274,8 +274,11 @@ func AddScattersAndLines(plt *plot.Plot, vs ...interface{}) error {
 				if err != nil {
 					return err
 				}
-				sc.Color = plotutil.Color(i)
+				if !greyScale {
+					sc.Color = plotutil.Color(i)
+				}
 				sc.Shape = plotutil.Shape(i)
+				sc.Radius = 1.5 * linewidth
 				ps = append(ps, sc)
 
 				l, err := plotter.NewLine(val)
@@ -283,12 +286,18 @@ func AddScattersAndLines(plt *plot.Plot, vs ...interface{}) error {
 					return err
 				}
 				l.Width = linewidth
-				l.Color = plotutil.Color(i)
+				if !greyScale {
+					l.Color = plotutil.Color(i)
+				}
 				l.Dashes = plotutil.Dashes(i)
 				ps = append(ps, l)
 
 				// adding a legend
-				items = append(items, item1{name: k, value: l})
+				if greyScale {
+					items = append(items, item1{name: k, value: sc}) // adding scatters to the legend
+				} else {
+					items = append(items, item1{name: k, value: l}) // adding dash lines to the legend
+				}
 
 				// incrementing a value (responsible for different color, shape (i.c.o. Scatters) and dash type (i.c.o. Line)
 				i++
