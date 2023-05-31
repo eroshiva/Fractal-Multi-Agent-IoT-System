@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/benchmarking"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/draw"
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/measurement"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
 	"os"
@@ -51,6 +52,7 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().StringArrayVar(&genFig, "generateFigures", nil, "generates figures based on the provided benchmarked data")
 	cmd.PersistentFlags().Bool("docker", false, "indicates that the benchmarking is done in Docker container")
 	cmd.PersistentFlags().Bool("greyScale", false, "indicates that the plotter should generate figures in grey scale")
+	cmd.PersistentFlags().Bool("runMeasurement", false, "runs measurement for FMAIS of Depth 2, 3 and 4")
 	return cmd
 }
 
@@ -62,11 +64,11 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	benchFMAIS, _ := cmd.Flags().GetBool("benchFMAIS")
 	benchMeErtCORE, _ := cmd.Flags().GetBool("benchMeErtCORE")
 	//benchErtCORE, _ := cmd.Flags().GetBool("benchErtCORE")
-	// ToDo - do I need to read this flag or it is automatically read from the CLI??? I guess, the latter
 	iterations, _ = cmd.Flags().GetInt("iterations")
 	genFig, _ = cmd.Flags().GetStringArray("generateFigures")
 	docker, _ := cmd.Flags().GetBool("docker")
 	greyScale, _ := cmd.Flags().GetBool("greyScale")
+	runMeasurement, _ := cmd.Flags().GetBool("runMeasurement")
 
 	log.Printf("Starting fractal-mais\nExample: %v\nBenchmarking: %v\n"+
 		"Hardcoded: %v\nBenchmark Fractal MAIS: %v\nBenchmark ME-ERT-CORE: %v\n"+
@@ -89,7 +91,6 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 		}
 	}
 	if benchmark && !hardcoded {
-		// ToDo - parse SystemModel flags first..
 		err := benchmarking.BenchSystemModel(depth, appNumber, maxNumInstances, iterations, docker, greyScale)
 		if err != nil {
 			return err
@@ -132,6 +133,14 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 
 	if genFig != nil {
 		err := draw.PlotFigures(greyScale, genFig...)
+		if err != nil {
+			return err
+		}
+	}
+
+	if runMeasurement {
+		log.Printf("Running measurement\n")
+		err := measurement.RunMeasurement()
 		if err != nil {
 			return err
 		}

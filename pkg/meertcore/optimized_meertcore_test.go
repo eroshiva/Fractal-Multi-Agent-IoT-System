@@ -14,7 +14,7 @@ func TestTotalReliability(t *testing.T) {
 	t.Logf("System model is\n%v", systemModel)
 
 	systemModel.SetApplicationPrioritiesRandom()
-	systemModel.PrettyPrintLayers()
+	systemModel.PrettyPrintApplications().PrettyPrintLayers()
 	err = systemModel.SetInstancePrioritiesRandom()
 	assert.NilError(t, err)
 	err = systemModel.SetInstanceReliabilitiesRandom()
@@ -45,4 +45,89 @@ func TestTotalReliability(t *testing.T) {
 
 	systemModel.PrettyPrintApplications()
 	systemModel.PrettyPrintLayers()
+}
+
+func TestComputeReliabilityOptimizedSimpleDepth4(t *testing.T) {
+	// initialising system model
+	sm4 := systemmodel.CreateSystemModelDepth4()
+
+	// initializing ME-ERT-CORE
+	meErtCore := MeErtCore{
+		SystemModel: sm4,
+		Reliability: 0.0,
+	}
+
+	// get reliabilities for all apps
+	appRel, err := meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+	assert.NilError(t, err)
+	assert.Assert(t, len(appRel) > 0)
+	t.Logf("Reliabilities for each application are\n%v\n", appRel)
+
+	rel, err := meErtCore.ComputeReliabilityOptimizedSimple()
+	assert.NilError(t, err)
+	t.Logf("Computed reliability is %v/%v", rel, meErtCore.Reliability)
+	assert.Assert(t, rel-0.557274 < 0.000000001)
+}
+
+func TestComputeReliabilityOptimizedSimpleDepth3(t *testing.T) {
+	// initialising system model
+	sm3 := systemmodel.CreateSystemModelDepth3()
+
+	// initializing ME-ERT-CORE
+	meErtCore := MeErtCore{
+		SystemModel: sm3,
+		Reliability: 0.0,
+	}
+
+	// get reliabilities for all apps
+	appRel, err := meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+	assert.NilError(t, err)
+	assert.Assert(t, len(appRel) > 0)
+	t.Logf("Reliabilities for each application are\n%v\n", appRel)
+
+	rel, err := meErtCore.ComputeReliabilityOptimizedSimple()
+	assert.NilError(t, err)
+	t.Logf("Computed reliability is %v/%v", rel, meErtCore.Reliability)
+	assert.Assert(t, rel-0.536827 < 0.000000001)
+}
+
+func TestComputeReliabilityOptimizedSimpleDepth2(t *testing.T) {
+	// initialising system model
+	sm2 := systemmodel.CreateSystemModelDepth2()
+
+	// initializing ME-ERT-CORE
+	meErtCore := MeErtCore{
+		SystemModel: sm2,
+		Reliability: 0.0,
+	}
+
+	// get reliabilities for all apps
+	appRel, err := meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+	assert.NilError(t, err)
+	assert.Assert(t, len(appRel) > 0)
+	t.Logf("Reliabilities for each application are\n%v\n", appRel)
+
+	rel, err := meErtCore.ComputeReliabilityOptimizedSimple()
+	assert.NilError(t, err)
+	t.Logf("Computed reliability is %v/%v", rel, meErtCore.Reliability)
+	assert.Assert(t, rel-0.506727 < 0.000000001)
+}
+
+func TestComputeMeErtCoreCoefficient(t *testing.T) {
+	relVal := 0.54893654512
+	coef, err := ComputeMeErtCoreCoefficient(relVal, 2)
+	assert.NilError(t, err)
+	assert.Equal(t, coef, 0.4893654512)
+
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 3)
+	assert.NilError(t, err)
+	assert.Equal(t, coef, 0.893654512)
+
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 4)
+	assert.NilError(t, err)
+	assert.Equal(t, coef, 0.93654512)
+
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 1)
+	assert.NilError(t, err)
+	assert.Equal(t, coef, relVal)
 }

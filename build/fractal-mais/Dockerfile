@@ -2,7 +2,7 @@
 # https://github.com/onosproject/onos-e2t/blob/master/build/onos-e2t/Dockerfile
 
 # this is a minimal image, which needs git (and curl) to be installed
-FROM golang:1.20.3-alpine as builder
+FROM golang:1.20.4-alpine as builder
 
 # installing dependencies
 RUN apk add --update && apk add --update --no-cache make

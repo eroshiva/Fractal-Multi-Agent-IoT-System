@@ -1,0 +1,134 @@
+package measurement
+
+import (
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/meertcore"
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
+	"gotest.tools/assert"
+	"math"
+	"testing"
+)
+
+func TestUpdateReliabilities(t *testing.T) {
+	// initializing input data
+	app1, app2, vi := initializeInputDataDepth2()
+
+	// initialising system model
+	sm2 := systemmodel.CreateSystemModelDepth2()
+
+	meErtCore := meertcore.MeErtCore{
+		SystemModel: sm2,
+		Reliability: 0.0,
+	}
+
+	// Application #1, instance 1
+	inst, err := meErtCore.SystemModel.GetInstance("App#2-1-1")
+	assert.NilError(t, err)
+	rel, err := inst.GetReliability()
+	assert.NilError(t, err)
+	assert.Equal(t, rel, 0.77)
+
+	// setting initial reliabilities (in step #1)
+	err = updateReliabilities(meErtCore.SystemModel, 1, app1, app2, vi)
+	assert.NilError(t, err)
+
+	// verifying that they were set successfully
+	// Application #1, instance 1
+	inst, err = meErtCore.SystemModel.GetInstance("App#2-1-1")
+	assert.NilError(t, err)
+	rel, err = inst.GetReliability()
+	assert.NilError(t, err)
+	assert.Assert(t, (rel < app1.inst1[1]+deviation) && (rel > app1.inst1[1]-deviation))
+
+	// Application #1, instance 2
+	inst, err = meErtCore.SystemModel.GetInstance("App#2-1-2")
+	assert.NilError(t, err)
+	rel, err = inst.GetReliability()
+	assert.NilError(t, err)
+	assert.Assert(t, (rel < app1.inst2[1]+deviation) && (rel > app1.inst2[1]-deviation))
+
+	// Application #1, instance 3
+	inst, err = meErtCore.SystemModel.GetInstance("App#2-1-3")
+	assert.NilError(t, err)
+	rel, err = inst.GetReliability()
+	assert.NilError(t, err)
+	assert.Assert(t, (rel < app1.inst3[1]+deviation) && (rel > app1.inst3[1]-deviation))
+
+	// Application #2, instance 1
+	inst, err = meErtCore.SystemModel.GetInstance("App#2-2-1")
+	assert.NilError(t, err)
+	rel, err = inst.GetReliability()
+	assert.NilError(t, err)
+	assert.Assert(t, (rel < app2.inst1[1]+deviation) && (rel > app2.inst1[1]-deviation))
+
+	// Application #2, instance 2
+	inst, err = meErtCore.SystemModel.GetInstance("App#2-2-2")
+	assert.NilError(t, err)
+	rel, err = inst.GetReliability()
+	assert.NilError(t, err)
+	assert.Assert(t, (rel < app2.inst2[1]+deviation) && (rel > app2.inst2[1]-deviation))
+
+	// iterating a bit more and checking critical points for us
+	for i := 2; i <= 100; i++ {
+		// setting reliabilities for each instance
+		err := updateReliabilities(meErtCore.SystemModel, i, app1, app2, vi)
+		assert.NilError(t, err)
+		// Application #1, instance 1
+		if i == 60 {
+			inst, err := meErtCore.SystemModel.GetInstance("App#2-1-2")
+			assert.NilError(t, err)
+			rel, err := inst.GetReliability()
+			assert.NilError(t, err)
+			t.Logf("Reliability is %v", rel)
+			assert.Assert(t, (rel < app1.inst2[60]+deviation) && (rel > app1.inst2[60]-deviation))
+		}
+		// Application #1, instance 2
+		if i == 30 {
+			inst, err := meErtCore.SystemModel.GetInstance("App#2-1-2")
+			assert.NilError(t, err)
+			rel, err := inst.GetReliability()
+			assert.NilError(t, err)
+			assert.Assert(t, (rel < 0.27+deviation) && (rel > 0.27-deviation))
+		}
+
+	}
+}
+
+func TestMeasurementDepth4(t *testing.T) {
+	err := runMeasurementForDepth4(true)
+	assert.NilError(t, err)
+}
+
+func TestMeasurementDepth3(t *testing.T) {
+	err := runMeasurementForDepth3(true)
+	assert.NilError(t, err)
+}
+
+func TestMeasurementDepth2(t *testing.T) {
+	err := runMeasurementForDepth2(true)
+	assert.NilError(t, err)
+}
+
+func TestGenerateRandomVectorOfLength(t *testing.T) {
+	v := generateRandomVectorOfLength(0.5, 10)
+	t.Logf("Generated vector is %v", v)
+	t.Logf("Maximum float64 is %v", math.MaxFloat64)
+}
+
+func TestComputeMeErtCoreReliabilities(t *testing.T) {
+
+	relMap := map[int]float64{
+		1: 0.654876213,
+		2: 0.1236854984,
+		3: 0.46821546,
+		4: 0.3569875654,
+	}
+
+	_, err := computeMeErtCoreCoefficients(relMap, 4)
+	assert.ErrorContains(t, err, "obtained incomplete map")
+
+	v := generateInputDataForInstance(app1inst1)
+	t.Logf("Computed coefficients are: %v", v)
+	coefs, err := computeMeErtCoreCoefficients(v, 4)
+	assert.NilError(t, err)
+	t.Logf("Computed coefficients are: %v", coefs)
+}

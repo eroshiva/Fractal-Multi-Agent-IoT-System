@@ -16,24 +16,22 @@ func CreateExampleBasicFMAIS() *SystemModel {
 		CreateApplication(3, 0.3, "App#1").
 		CreateApplication(5, 0.3, "App#2")
 
-	// ToDo - should the Probability correlate with the Priority??
 	// setting priorities for each application
 	systemModel.Applications["VI"].SetPriority(0.35)
 	systemModel.Applications["App#1"].SetPriority(0.25)
 	systemModel.Applications["App#2"].SetPriority(0.4)
 
 	// creating two VI instances and App#1 on layer 2
-	// we do NOT care about relations. This is not important to compute reliability (yet)
 	vi1 := &Instance{}
-	vi1.CreateInstance("VI#1-2", CreateInstanceTypeVI()).SetPriority(0.25) // we don't set reliability here, cause this instance deploys other instances
+	vi1.CreateInstance("VI#2-1", CreateInstanceTypeVI()).SetPriority(0.25) // we don't set reliability here, cause this instance deploys other instances
 	vi2 := &Instance{}
 	vi2.CreateInstance("VI#2-2", CreateInstanceTypeVI()).SetPriority(0.25) // we don't set reliability here, cause this instance deploys other instances
 	app11 := &Instance{}
-	app11.CreateInstance("App#1-1-2", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.77)
+	app11.CreateInstance("App#2-1-1", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.77)
 	app12 := &Instance{}
-	app12.CreateInstance("App#1-2-2", CreateInstanceTypeApp()).SetPriority(0.5).SetReliability(0.34)
+	app12.CreateInstance("App#2-1-2", CreateInstanceTypeApp()).SetPriority(0.5).SetReliability(0.34)
 	app13 := &Instance{}
-	app13.CreateInstance("App#1-3-2", CreateInstanceTypeApp()).SetPriority(0.3).SetReliability(0.62)
+	app13.CreateInstance("App#2-1-3", CreateInstanceTypeApp()).SetPriority(0.3).SetReliability(0.62)
 
 	// adding these new instances as a relation to the Root node
 	systemModel.Layers[1].Instances[0].AddRelation(vi1).AddRelation(vi2).AddRelation(app11).
@@ -50,19 +48,19 @@ func CreateExampleBasicFMAIS() *SystemModel {
 
 	// creating App#2 and one VI
 	app21 := &Instance{}
-	app21.CreateInstance("App#2-1-3", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.47)
+	app21.CreateInstance("App#3-2-1", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.47)
 	app22 := &Instance{}
-	app22.CreateInstance("App#2-2-3", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.39)
+	app22.CreateInstance("App#3-2-2", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.39)
 	app23 := &Instance{}
-	app23.CreateInstance("App#2-3-3", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.53)
+	app23.CreateInstance("App#3-2-3", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.53)
 	app24 := &Instance{}
-	app24.CreateInstance("App#2-4-3", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.45)
+	app24.CreateInstance("App#3-2-4", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.45)
 	app25 := &Instance{}
-	app25.CreateInstance("App#2-5-3", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.74)
+	app25.CreateInstance("App#3-2-5", CreateInstanceTypeApp()).SetPriority(0.2).SetReliability(0.74)
 	vi3 := &Instance{}
 	vi3.CreateInstance("VI#3-3", CreateInstanceTypeVI()).SetPriority(0.25).SetReliability(0.61)
 	vi4 := &Instance{}
-	vi4.CreateInstance("VI#4-3", CreateInstanceTypeVI()).SetPriority(0.25).SetReliability(0.7)
+	vi4.CreateInstance("VI#3-4", CreateInstanceTypeVI()).SetPriority(0.25).SetReliability(0.7)
 
 	// adding new instances as a relations
 	vi1.AddRelation(app21).AddRelation(app22).AddRelation(app23).AddRelation(app24).AddRelation(app25)

@@ -64,3 +64,12 @@ docker-bench: image ## Benchmarks the whole codebase wrapped in a Docker contain
 	docker run --rm -v ~/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/data:/usr/local/bin/data \
 		-v ~/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/figures:/usr/local/bin/figures \
 		${DOCKER_REPOSITORY}fractal-mais-generator:${FMAIS_VERSION} --benchmark --hardcoded --docker
+
+measurement: build ## Runs measurement for FMAIS of depth 2, 3 and 4
+	./build/_output/fractal-mais --runMeasurement
+
+docker-measurement: image ## Runs measurement in a Docker container
+	docker run --rm -v ~/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/data:/usr/local/bin/data \
+		-v ~/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/figures:/usr/local/bin/figures \
+		${DOCKER_REPOSITORY}fractal-mais-generator:${FMAIS_VERSION} --runMeasurement
+

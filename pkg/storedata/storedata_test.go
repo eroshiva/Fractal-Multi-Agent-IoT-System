@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func Test_exportDataToJSON(t *testing.T) {
+func Test_ExportDataToJSON(t *testing.T) {
 	// defining a path and a filename to import data
 	path := "../../data/"
 	filename := "unittest"
@@ -17,7 +17,7 @@ func Test_exportDataToJSON(t *testing.T) {
 	data[100][20][31] = 3.1457
 
 	// exporting data
-	err := exportDataToJSON(path, filename, data, "", " ")
+	err := ExportDataToJSON(path, filename, data, "", " ")
 	assert.NilError(t, err)
 }
 
