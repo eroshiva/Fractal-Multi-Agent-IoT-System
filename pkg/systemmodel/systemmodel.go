@@ -158,6 +158,12 @@ func (sm *SystemModel) CreateRandomApplications(names []string, minNumInstances 
 	return sm
 }
 
+// Deploy function sets the state of the Application to true
+func (a *Application) Deploy() *Application {
+	a.State = true
+	return a
+}
+
 // DeployApplication checks if the Application is deployed. It generates random probability and compares with
 // the probability of the Application deployment. If it is smaller than the Application deployment probability,
 // then the Application is deployed. In the other case, Application is not deployed.
@@ -402,16 +408,31 @@ func (i *Instance) SetAspect(key, value string) *Instance {
 // the applications list. It assumes that all Application instances in the name have dashes
 func (i *Instance) GetAppName() (string, error) {
 	if i.IsVI() {
-		// if it is a VI, then returning just VI
-		return "VI", nil
+		// if it is a VI, then returning the exact VI instance name
+		return i.Name, nil
 	}
 	// if it is an Application, doing some parsing..
 	idx := strings.Index(i.Name, "-") // getting the first index of a dash
 	if idx != -1 {
-		return i.Name[:idx], nil
+		// obtaining actual application number
+		appNumber := i.Name[idx+1 : idx+2]
+		return "App#" + appNumber, nil
 	}
+	return "", fmt.Errorf("can't parse first dash in the instance name %s", i.Name)
+}
 
-	return "", fmt.Errorf("unknown app %s", i.Name)
+// GetInstanceNumber returns an instance number for Application or VI.
+// It assumes that all Application (and VI) instances in the name have dashes
+func (i *Instance) GetInstanceNumber() (int64, error) {
+	idx := strings.LastIndex(i.Name, "-") // getting the last index of a dash
+	if idx != -1 {
+		indexInt, err := strconv.ParseInt(i.Name[idx+1:], 10, 64)
+		if err != nil {
+			return -1, fmt.Errorf("conversion of an instance index to integer failed: %w", err)
+		}
+		return indexInt, nil
+	}
+	return -1, fmt.Errorf("something went wrong when attempted to parse a %s instance number", i.Name)
 }
 
 // IsVI function returns true, if the instance is of type VI, otherwise false

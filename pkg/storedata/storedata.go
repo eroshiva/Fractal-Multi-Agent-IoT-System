@@ -14,8 +14,8 @@ import (
 	"strings"
 )
 
-// exportDataToJSON stores generated during benchmarking data to JSON file
-func exportDataToJSON(path, filename string, data map[int]map[int]map[int]float64, prefix, indent string) error {
+// ExportDataToJSON stores generated during benchmarking data to JSON file
+func ExportDataToJSON(path, filename string, data any, prefix, indent string) error {
 
 	// marshal data to JSON
 	out, err := json.MarshalIndent(data, prefix, indent)
@@ -172,7 +172,7 @@ func importDataFromCSV(path, filename string) (map[int]map[int]map[int]float64, 
 // SaveData saves data to a file (both, .csv and .json)
 func SaveData(benchmarkedData map[int]map[int]map[int]float64, name string) error {
 
-	err := exportDataToJSON("data/", name, benchmarkedData, "", " ")
+	err := ExportDataToJSON("data/", name, benchmarkedData, "", " ")
 	if err != nil {
 		log.Panicf("Something went wrong during storing of the data in JSON file... %v\n", err)
 		return err

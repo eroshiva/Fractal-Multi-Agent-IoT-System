@@ -122,22 +122,22 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	for i := 1; i <= maxDepth; i++ {
 		depthArr = append(depthArr, i)
 	}
-	lines := GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{26})
-	err := depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, false)
+	lines := getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{26})
+	err := depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-56-inst").SetFigureName(figureName + "on the FMAIS depth")
-	lines = GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{56})
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, false)
+	lines = getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{56})
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-96-inst").SetFigureName(figureName + "on the FMAIS depth")
-	lines = GetLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{96})
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, false)
+	lines = getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{96})
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
@@ -150,22 +150,22 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	for appNumber := 1; appNumber <= maxAppNumber; appNumber += 5 {
 		appArr = append(appArr, appNumber)
 	}
-	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{26})
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, true)
+	lines = getLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{26})
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-56-inst").SetFigureName(figureName + "on the App number")
-	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{56})
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, true)
+	lines = getLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{56})
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-96-inst").SetFigureName(figureName + "on the App number")
-	lines = GetLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{96})
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, true)
+	lines = getLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{96})
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true)
 	if err != nil {
 		return err
 	}
@@ -177,29 +177,29 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	}
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-26-apps").SetFigureName(figureName + "on instances per App").
 		SetYaxisName("Time [us]").SetXaxisName("Instances (per App) [-]")
-	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{26}, instArr)
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, false)
+	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{26}, instArr)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-56-apps").SetFigureName(figureName + "on instances per App")
-	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{56}, instArr)
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, false)
+	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{56}, instArr)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-96-apps").SetFigureName(figureName + "on instances per App")
-	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{96}, instArr)
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, false)
+	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{96}, instArr)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-1-apps").SetFigureName(figureName + "on instances per App")
-	lines = GetLinesForInstances(tc, []int{2, 3, 4}, []int{1}, instArr)
-	err = depthFigure.PlotTimeComplexity(lines, greyScale, meertcore, false)
+	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{1}, instArr)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
@@ -207,34 +207,10 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	return nil
 }
 
-// PlotTimeComplexity produces single figure representing a certain case
-func (d *Draw) PlotTimeComplexity(lines map[string]plotter.XYs, greyScale, meertcore, appsNumberDep bool) error {
+// plotTimeComplexity produces single figure representing a certain case
+func (d *Draw) plotTimeComplexity(lines map[string]plotter.XYs, greyScale, meertcore, appsNumberDep bool) error {
 
-	p := plot.New()
-	// setting Figure name and its parameters
-	p.Title.Text = d.FigureName
-	p.Title.TextStyle.Font.Size = fontsizeLabels // set the size of Figure name
-
-	// setting X-Axis name and its parameters
-	p.X.Label.Text = d.XaxisName
-	p.X.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the X label
-	p.X.Tick.Label.Font.Size = fontsizeLegend      // set the size of the X-axis numbers
-
-	// setting Y-axis name and its parameters
-	p.Y.Label.Text = d.YaxisName
-	p.Y.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the Y label
-	p.Y.Tick.Label.Font.Size = fontsizeLegend      // set the size of the Y-axis numbers
-
-	// setting Legend parameters
-	p.Legend.TextStyle.Font.Size = fontsizeLegend // setting size of a Legend
-	// locating legend on the top left of the figure
-	p.Legend.Left = true
-	p.Legend.Top = true
-	p.Legend.YOffs = -vg.Inch            // place a legend a bit down
-	p.Legend.XOffs = 1.5 * vg.Centimeter // place a legend a bit to the right
-	if meertcore && appsNumberDep {
-		p.Legend.YOffs = -5 * vg.Inch // place a legend a bit down
-	}
+	p := d.initializeAndSetPlotter(meertcore, appsNumberDep)
 
 	// adding grid to the figure
 	p.Add(plotter.NewGrid())
@@ -258,8 +234,8 @@ func (d *Draw) PlotTimeComplexity(lines map[string]plotter.XYs, greyScale, meert
 	return nil
 }
 
-// GetLinesForDepth returns (X,Y) coordinates for all provided data where X-axis is fixed to depth
-func GetLinesForDepth(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
+// getLinesForDepth returns (X,Y) coordinates for all provided data where X-axis is fixed to depth
+func getLinesForDepth(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
 	lines := make(map[string]plotter.XYs, 0)
 
 	for _, a := range appNumber {
@@ -281,8 +257,8 @@ func GetLinesForDepth(tc map[int]map[int]map[int]float64, depth []int, appNumber
 	return lines
 }
 
-// GetLinesForAppNumber returns (X,Y) coordinates for all provided data where X-axis is fixed to Apps number
-func GetLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
+// getLinesForAppNumber returns (X,Y) coordinates for all provided data where X-axis is fixed to Apps number
+func getLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
 	lines := make(map[string]plotter.XYs, 0)
 
 	for _, d := range depth {
@@ -304,8 +280,8 @@ func GetLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNu
 	return lines
 }
 
-// GetLinesForInstances returns (X,Y) coordinates for all provided data where X-axis is fixed to Instances per App number
-func GetLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
+// getLinesForInstances returns (X,Y) coordinates for all provided data where X-axis is fixed to Instances per App number
+func getLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNumber []int, instances []int) map[string]plotter.XYs {
 	lines := make(map[string]plotter.XYs, 0)
 
 	for _, d := range depth {
@@ -325,6 +301,30 @@ func GetLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 	}
 
 	return lines
+}
+
+// getLinesForReliability converts measure ME-ERT-CORE reliability to plotter-friendly data
+func getLinesForReliability(tc map[int]float64, depth int) (map[string]plotter.XYs, error) {
+	lines := make(map[string]plotter.XYs, 0)
+
+	line := make(plotter.XYs, 0)
+
+	for i := 1; i <= 300; i++ {
+		val, ok := tc[i]
+		if !ok {
+			return nil, fmt.Errorf("couldn't extract key %d from map %v", i, tc)
+		}
+		xy := plotter.XY{
+			X: float64(i),
+			Y: val,
+		}
+		line = append(line, xy)
+	}
+
+	key := "FMAIS of depth " + strconv.Itoa(depth)
+	lines[key] = line
+
+	return lines, nil
 }
 
 // PlotFigures function plots a figures for SystemModel for a provided data in file called fileName
@@ -360,6 +360,116 @@ func PlotFigures(greyScale bool, fileNames ...string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+// PlotMeasuredReliability plots reliability values obtained from measurement
+func PlotMeasuredReliability(rels map[int]float64, depth int, greyScale bool) error {
+
+	// setting figure name
+	figureName := "Measured ME-ERT-CORE Reliability values"
+
+	// initializing structure for the Figure
+	figure := Draw{}
+	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName("measurement_meertcore_depth_" + strconv.Itoa(depth)).
+		SetXaxisName("Time [us]").SetYaxisName("Reliability [-]")
+
+	// converting measured reliability to XY data
+	line, err := getLinesForReliability(rels, depth)
+	if err != nil {
+		return err
+	}
+
+	// plotting data
+	err = figure.plotMeasuredReliability(line, greyScale)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// plotMeasuredReliability function plots measured ME-ERT-CORE reliability values
+func (d *Draw) plotMeasuredReliability(line map[string]plotter.XYs, greyScale bool) error {
+
+	p := d.initializeAndSetPlotter(true, false)
+
+	// adding grid to the figure
+	p.Add(plotter.NewGrid())
+
+	// adding plotters for gathered lines to the figure
+	err := AddScattersAndLines(p, greyScale, line)
+	if err != nil {
+		return err
+	}
+
+	// Save the plot to a PNG file
+	// ToDo - implement a relative path to enable execution out of everywhere in the system..
+	if err := p.Save(d.XLength, d.YLength, "figures/"+d.OutputFileName+".eps"); err != nil {
+		return err
+	}
+	if err := p.Save(d.XLength, d.YLength, "figures/"+d.OutputFileName+".png"); err != nil {
+		return err
+	}
+	d.Rendered = true
+
+	return nil
+}
+
+// initializeAndSetPlotter function initializes and sets default parameters to the figure
+func (d *Draw) initializeAndSetPlotter(meertcore, appsNumberDep bool) *plot.Plot {
+	p := plot.New()
+	// setting Figure name and its parameters
+	p.Title.Text = d.FigureName
+	p.Title.TextStyle.Font.Size = fontsizeLabels // set the size of Figure name
+
+	// setting X-Axis name and its parameters
+	p.X.Label.Text = d.XaxisName
+	p.X.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the X label
+	p.X.Tick.Label.Font.Size = fontsizeLegend      // set the size of the X-axis numbers
+
+	// setting Y-axis name and its parameters
+	p.Y.Label.Text = d.YaxisName
+	p.Y.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the Y label
+	p.Y.Tick.Label.Font.Size = fontsizeLegend      // set the size of the Y-axis numbers
+
+	// setting Legend parameters
+	p.Legend.TextStyle.Font.Size = fontsizeLegend // setting size of a Legend
+	// locating legend on the top left of the figure
+	p.Legend.Left = true
+	p.Legend.Top = true
+	p.Legend.YOffs = -vg.Inch            // place a legend a bit down
+	p.Legend.XOffs = 1.5 * vg.Centimeter // place a legend a bit to the right
+	if meertcore && appsNumberDep {
+		p.Legend.YOffs = -5 * vg.Inch // place a legend a bit down
+	}
+
+	return p
+}
+
+// PlotMeErtCoreCoefficients plots reliability values obtained from measurement
+func PlotMeErtCoreCoefficients(rels map[int]float64, depth int, greyScale bool) error {
+
+	// setting figure name
+	figureName := "Computed ME-ERT-CORE coefficients"
+
+	// initializing structure for the Figure
+	figure := Draw{}
+	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName("measurement_meertcore_coef_depth_" + strconv.Itoa(depth)).
+		SetXaxisName("Time [us]").SetYaxisName("ME-ERT-CORE coefficient [-]")
+
+	// converting measured reliability to XY data
+	line, err := getLinesForReliability(rels, depth)
+	if err != nil {
+		return err
+	}
+
+	// plotting data
+	err = figure.plotMeasuredReliability(line, greyScale)
+	if err != nil {
+		return err
 	}
 
 	return nil

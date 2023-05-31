@@ -17,7 +17,7 @@ build-this-repo:
   script:
     - make build
 
-# run unit tests and build image
+# run unit tests
 test-this-repo:
   stage: test
   script:

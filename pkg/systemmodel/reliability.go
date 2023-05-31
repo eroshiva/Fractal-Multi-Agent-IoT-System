@@ -31,7 +31,9 @@ func (sm *SystemModel) GatherApplicationInstanceReliabilities(appName string) (m
 				return nil, fmt.Errorf("map entry for SystemModel.Layers with key %v does not exist", i)
 			}
 			for _, v := range layer.Instances {
-				if strings.HasPrefix(v.Name, appName+"-") {
+				appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + appName[len(appName)-1:] + "-"
+				//if strings.HasPrefix(inst.Name, appNameForCurrentLayer) && inst.Type == App {
+				if strings.HasPrefix(v.Name, appNameForCurrentLayer) {
 					reliability, err := v.GetReliability()
 					if err != nil {
 						return nil, err
@@ -214,7 +216,8 @@ func (sm *SystemModel) SetInstancePrioritiesRandom() error {
 						return fmt.Errorf("no layer at level %d exists", i)
 					}
 					for _, inst := range layer.Instances {
-						if strings.HasPrefix(inst.Name, k+"-") && inst.Type == App {
+						appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + k[len(k)-1:] + "-"
+						if strings.HasPrefix(inst.Name, appNameForCurrentLayer) && inst.Type == App {
 							rnd := rand.Float64() * priorSum
 							inst.SetPriority(rnd)
 							priorSum -= rnd
@@ -296,7 +299,8 @@ func (sm *SystemModel) SetInstanceReliabilitiesRandom() error {
 							return fmt.Errorf("no layer at level %d exists", i)
 						}
 						for _, inst := range layer.Instances {
-							if strings.HasPrefix(inst.Name, k+"-") && inst.Type == App {
+							appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + k[len(k)-1:] + "-"
+							if strings.HasPrefix(inst.Name, appNameForCurrentLayer) && inst.Type == App {
 								rnd := rand.Float64()
 								inst.SetReliability(rnd)
 								instCount--
@@ -487,8 +491,9 @@ func (sm *SystemModel) SetChainCoefficients() error {
 					return fmt.Errorf("no layer at level %d exists", i)
 				}
 				for _, val := range layer.Instances {
+					appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + k[len(k)-1:] + "-"
 					// exact matching the name of an instance
-					if strings.HasPrefix(val.Name, k) {
+					if strings.HasPrefix(val.Name, appNameForCurrentLayer) {
 						// obtaining a chain coefficient for an instance (they should be the same for all instance within the same Application)
 						cc, err := val.GetChainCoefficient()
 						if err != nil {
