@@ -304,7 +304,7 @@ func getLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 }
 
 // getLinesForReliability converts measure ME-ERT-CORE reliability to plotter-friendly data
-func getLinesForReliability(tc map[int]float64, depth int) (map[string]plotter.XYs, error) {
+func getLinesForReliability(tc map[int]float64, apps, depth int) (map[string]plotter.XYs, error) {
 	lines := make(map[string]plotter.XYs, 0)
 
 	line := make(plotter.XYs, 0)
@@ -321,7 +321,7 @@ func getLinesForReliability(tc map[int]float64, depth int) (map[string]plotter.X
 		line = append(line, xy)
 	}
 
-	key := "FMAIS of depth " + strconv.Itoa(depth)
+	key := fmt.Sprintf("FMAIS of depth %d with %d Apps", depth, apps)
 	lines[key] = line
 
 	return lines, nil
@@ -366,18 +366,22 @@ func PlotFigures(greyScale bool, fileNames ...string) error {
 }
 
 // PlotMeasuredReliability plots reliability values obtained from measurement
-func PlotMeasuredReliability(rels map[int]float64, depth int, greyScale bool) error {
+func PlotMeasuredReliability(rels map[int]float64, apps, depth int, greyScale, wide bool) error {
 
 	// setting figure name
 	figureName := "Measured ME-ERT-CORE Reliability values"
+	fileName := fmt.Sprintf("measurement_meertcore_depth_%d_apps_%d", depth, apps)
+	if wide {
+		fileName = fmt.Sprintf("measurement_meertcore_wide_depth_%d_apps_%d", depth, apps)
+	}
 
 	// initializing structure for the Figure
 	figure := Draw{}
-	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName("measurement_meertcore_depth_" + strconv.Itoa(depth)).
+	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName(fileName).
 		SetXaxisName("Time [us]").SetYaxisName("Reliability [-]")
 
 	// converting measured reliability to XY data
-	line, err := getLinesForReliability(rels, depth)
+	line, err := getLinesForReliability(rels, apps, depth)
 	if err != nil {
 		return err
 	}
@@ -450,18 +454,22 @@ func (d *Draw) initializeAndSetPlotter(meertcore, appsNumberDep bool) *plot.Plot
 }
 
 // PlotMeErtCoreCoefficients plots reliability values obtained from measurement
-func PlotMeErtCoreCoefficients(rels map[int]float64, depth int, greyScale bool) error {
+func PlotMeErtCoreCoefficients(rels map[int]float64, apps, depth int, greyScale, wide bool) error {
 
 	// setting figure name
 	figureName := "Computed ME-ERT-CORE coefficients"
+	fileName := fmt.Sprintf("measurement_meertcore_coef_depth_%d_apps_%d", depth, apps)
+	if wide {
+		fileName = fmt.Sprintf("measurement_meertcore_wide_coef_depth_%d_apps_%d", depth, apps)
+	}
 
 	// initializing structure for the Figure
 	figure := Draw{}
-	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName("measurement_meertcore_coef_depth_" + strconv.Itoa(depth)).
+	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName(fileName).
 		SetXaxisName("Time [us]").SetYaxisName("ME-ERT-CORE coefficient [-]")
 
 	// converting measured reliability to XY data
-	line, err := getLinesForReliability(rels, depth)
+	line, err := getLinesForReliability(rels, apps, depth)
 	if err != nil {
 		return err
 	}

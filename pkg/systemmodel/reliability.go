@@ -30,9 +30,12 @@ func (sm *SystemModel) GatherApplicationInstanceReliabilities(appName string) (m
 			if !ok {
 				return nil, fmt.Errorf("map entry for SystemModel.Layers with key %v does not exist", i)
 			}
+			hasTagIdx := strings.Index(appName, "#")
+			appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + appName[hasTagIdx+1:] + "-"
 			for _, v := range layer.Instances {
-				appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + appName[len(appName)-1:] + "-"
-				//if strings.HasPrefix(inst.Name, appNameForCurrentLayer) && inst.Type == App {
+				if count == 0 {
+					break
+				}
 				if strings.HasPrefix(v.Name, appNameForCurrentLayer) {
 					reliability, err := v.GetReliability()
 					if err != nil {
@@ -46,10 +49,10 @@ func (sm *SystemModel) GatherApplicationInstanceReliabilities(appName string) (m
 					appReliability += reliability * priority
 					count--
 				}
-				if count == 0 {
-					break
-				}
 			}
+		}
+		if count != 0 {
+			fmt.Printf("Not all instances of Application %s were found - missing %d instances", appName, count)
 		}
 		sm.Applications[appName].SetReliability(appReliability)
 		return res, nil

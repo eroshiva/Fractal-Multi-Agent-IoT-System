@@ -115,19 +115,27 @@ func TestComputeReliabilityOptimizedSimpleDepth2(t *testing.T) {
 
 func TestComputeMeErtCoreCoefficient(t *testing.T) {
 	relVal := 0.54893654512
-	coef, err := ComputeMeErtCoreCoefficient(relVal, 2)
+	coef, err := ComputeMeErtCoreCoefficient(relVal, 9)
+	assert.NilError(t, err)
+	assert.Equal(t, coef, relVal)
+
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 11)
 	assert.NilError(t, err)
 	assert.Equal(t, coef, 0.4893654512)
 
-	coef, err = ComputeMeErtCoreCoefficient(relVal, 3)
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 99)
+	assert.NilError(t, err)
+	assert.Equal(t, coef, 0.4893654512)
+
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 999)
 	assert.NilError(t, err)
 	assert.Equal(t, coef, 0.893654512)
 
-	coef, err = ComputeMeErtCoreCoefficient(relVal, 4)
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 9999)
 	assert.NilError(t, err)
 	assert.Equal(t, coef, 0.93654512)
 
-	coef, err = ComputeMeErtCoreCoefficient(relVal, 1)
+	coef, err = ComputeMeErtCoreCoefficient(relVal, 99999)
 	assert.NilError(t, err)
 	assert.Equal(t, coef, relVal)
 }

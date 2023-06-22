@@ -132,3 +132,103 @@ func TestComputeMeErtCoreReliabilities(t *testing.T) {
 	assert.NilError(t, err)
 	t.Logf("Computed coefficients are: %v", coefs)
 }
+
+func TestMeasurementWide(t *testing.T) {
+	err := runMeasurementWide(10, 10, true)
+	assert.NilError(t, err)
+}
+
+func TestMeasurementWide2(t *testing.T) {
+	//deviation = 0.1 * deviation
+	deviation = 0
+
+	tc := make([]int, 0)
+	tc = append(tc, 10)   // FMAIS of depth 3 with 10 Apps
+	tc = append(tc, 1000) // FMAIS of depth 4 with 1000 Apps
+
+	// initializing input data
+	app, appFailed := initializeInputDataWide()
+
+	// iterating over test cases
+	for _, val := range tc {
+
+		// initialize FMAIS of depth 3 with 10 applications
+		sm, err := systemmodel.CreateSystemModelWide(val)
+		assert.NilError(t, err)
+
+		meErtCore := meertcore.MeErtCore{
+			SystemModel: sm,
+			Reliability: 0.0,
+		}
+
+		///// step 1
+		// setting reliabilities for each instance
+		err = updateReliabilities(meErtCore.SystemModel, 1, appFailed, app)
+		assert.NilError(t, err)
+
+		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+		assert.NilError(t, err)
+
+		// computing reliability of the FMAIS per (optimized) ME-ERT-CORE
+		rel, err := meErtCore.ComputeReliabilityOptimizedSimple()
+		assert.NilError(t, err)
+
+		t.Logf("Computed reliability is %v for FMAIS with %d Apps", rel, val)
+
+		///// step 101
+		// setting reliabilities for each instance
+		err = updateReliabilities(meErtCore.SystemModel, 101, appFailed, app)
+		assert.NilError(t, err)
+
+		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+		assert.NilError(t, err)
+
+		// computing reliability of the FMAIS per (optimized) ME-ERT-CORE
+		rel1, err := meErtCore.ComputeReliabilityOptimizedSimple()
+		assert.NilError(t, err)
+
+		t.Logf("Computed reliability (first failure) is %v for FMAIS with %d Apps", rel1, val)
+
+		///// step 150
+		// setting reliabilities for each instance
+		err = updateReliabilities(meErtCore.SystemModel, 150, appFailed, app)
+		assert.NilError(t, err)
+
+		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+		assert.NilError(t, err)
+
+		// computing reliability of the FMAIS per (optimized) ME-ERT-CORE
+		rel2, err := meErtCore.ComputeReliabilityOptimizedSimple()
+		assert.NilError(t, err)
+
+		t.Logf("Computed reliability is %v for FMAIS with %d Apps", rel2, val)
+
+		///// step 170
+		// setting reliabilities for each instance
+		err = updateReliabilities(meErtCore.SystemModel, 170, appFailed, app)
+		assert.NilError(t, err)
+
+		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+		assert.NilError(t, err)
+
+		// computing reliability of the FMAIS per (optimized) ME-ERT-CORE
+		rel3, err := meErtCore.ComputeReliabilityOptimizedSimple()
+		assert.NilError(t, err)
+
+		t.Logf("Computed reliability (second failure) is %v for FMAIS with %d Apps", rel3, val)
+
+		///// step 200
+		// setting reliabilities for each instance
+		err = updateReliabilities(meErtCore.SystemModel, 200, appFailed, app)
+		assert.NilError(t, err)
+
+		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+		assert.NilError(t, err)
+
+		// computing reliability of the FMAIS per (optimized) ME-ERT-CORE
+		rel4, err := meErtCore.ComputeReliabilityOptimizedSimple()
+		assert.NilError(t, err)
+
+		t.Logf("Computed reliability is %v for FMAIS with %d Apps", rel4, val)
+	}
+}

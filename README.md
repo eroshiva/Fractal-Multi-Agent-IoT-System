@@ -28,6 +28,7 @@ If you want to learn more about the FMAIS and ME-ERT-CORE, please refer to **lea
 Necessary prerequisites for running this project are:
 - `Golang`
 - `make`
+- `curl`
 
 
 ## Repository structure
@@ -103,7 +104,8 @@ There are two sources of fluctuation which may potentially affect result:
   - at one iteration system can contain `50'000` instances, and at the other iteration - `500'000`. This is 
   being spread with taking an average value over the `25'000` iterations.
 
-Result are in μs (i.e., `10^-6`), thus errors in 10th or 12th digit after the comma do not have an impact on the final result.
+Result are in μs (i.e., `10^-6`). Errors in 10th or 12th digit after the comma (i.e., `10^-10 or 10^-12`) do not have an 
+impact on the final result.
 
 **With regard to the aforesaid, fluctuation in the measurement results is neglectable.**
 

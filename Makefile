@@ -1,8 +1,8 @@
 export GO111MODULE=on
 
-FMAIS_VERSION := latest
+FMAIS_VERSION := main
 DOCKER_REPOSITORY := eroshiva/
-GOLANGCI_LINTERS_VERSION := v1.52.2
+GOLANGCI_LINTERS_VERSION := v1.53.3
 BENCH_TIME := 10s
 
 .PHONY: help build
@@ -48,12 +48,14 @@ linters: linters-install ## Perform linting to verify codebase
 	golangci-lint run --timeout 5m
 
 test: build linters ## Test the codebase
-	go test -coverprofile=./data/test-cover.out -race -count=100 gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/...
+	go test -coverprofile=./data/test-cover.out -race gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/internal/...
+	go test -coverprofile=./data/test-cover1.out -race -count=100 gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/...
 
 run: example ## Runs compiled binary and generates an example of Fractal MAIS
 
 clean: ## Remove all the build artifacts
-	rm -rf ./build/_output ./vendor ./data/assets/ ./data/gobenchdata-web.yml ./data/index.html ./data/overrides.css ./data/benchmarks.json ./data/test-cover.out
+	rm -rf ./build/_output ./vendor ./data/assets/ ./data/gobenchdata-web.yml ./data/index.html ./data/overrides.css ./data/benchmarks.json ./data/test-cover.out ./data/test-cover1.out
+	rm -rf ./figures/measurement_*.eps ./figures/measurement_*.png
 	go clean -cache -testcache
 
 image: ## Builds a Docker image
@@ -65,7 +67,7 @@ docker-bench: image ## Benchmarks the whole codebase wrapped in a Docker contain
 		-v ~/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/figures:/usr/local/bin/figures \
 		${DOCKER_REPOSITORY}fractal-mais-generator:${FMAIS_VERSION} --benchmark --hardcoded --docker
 
-measurement: build ## Runs measurement for FMAIS of depth 2, 3 and 4
+measurement: build ## Runs measurement for FMAIS of depth 2, 3 and 4 and large-scale FMAIS measurement
 	./build/_output/fractal-mais --runMeasurement
 
 docker-measurement: image ## Runs measurement in a Docker container
