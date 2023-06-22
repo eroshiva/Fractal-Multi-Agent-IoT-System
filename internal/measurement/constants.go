@@ -4,13 +4,15 @@ package measurement
 
 // deviation defines a deviation of a Normal distribution
 const (
-	deviation float64 = 0.025
-	app1Name          = "App#1"
-	app2Name          = "App#2"
-	app3Name          = "App#3"
-	app4Name          = "App#4"
-	viName            = "VI"
+	app1Name    = "App#1"
+	app2Name    = "App#2"
+	app3Name    = "App#3"
+	app4Name    = "App#4"
+	viName      = "VI"
+	appFailName = "App#1" // all other apps won't fail in large-scale measurement
 )
+
+var deviation = 0.025
 
 // app1inst1 defines reliabilities values for Instance #1 of the Application #1
 var app1inst1 = []inputData{
@@ -180,5 +182,61 @@ var viaas = []inputData{
 		from:  286,
 		to:    300,
 		value: 0.94,
+	},
+}
+
+// appInst1 defines reliabilities values for Instance #1 of the Application (which does NOT fails)
+var appInst1 = []inputData{
+	{
+		from:  1,
+		to:    300,
+		value: 0.46,
+	},
+}
+
+// appInst2 defines reliabilities values for Instance #2 of the Application (which does NOT fail)
+var appInst2 = []inputData{
+	{
+		from:  1,
+		to:    300,
+		value: 0.69,
+	},
+}
+
+// appFailInst1 defines reliabilities values for Instance #1 of the Application (which FAILS)
+var appFailInst1 = []inputData{
+	{
+		from:  1,
+		to:    99,
+		value: 0.46,
+	},
+	{
+		from:  100,
+		to:    130,
+		value: 0.3,
+	},
+	{
+		from:  131,
+		to:    300,
+		value: 0.46,
+	},
+}
+
+// appFailInst2 defines reliabilities values for Instance #2 of the Application (which FAILS)
+var appFailInst2 = []inputData{
+	{
+		from:  1,
+		to:    160,
+		value: 0.69,
+	},
+	{
+		from:  161,
+		to:    185,
+		value: 0.59,
+	},
+	{
+		from:  186,
+		to:    300,
+		value: 0.69,
 	},
 }

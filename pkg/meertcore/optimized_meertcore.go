@@ -3,6 +3,7 @@ package meertcore
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"strconv"
 	"strings"
@@ -107,8 +108,25 @@ func (me *MeErtCore) ComputeReliabilityOptimizedSimple() (float64, error) {
 
 // ComputeMeErtCoreCoefficient computes ME-ERT-CORE coefficient, which describes better obtained reliability values.
 // It requires on input to get a reliability value and a System Model depth
-func ComputeMeErtCoreCoefficient(rel float64, depth int) (float64, error) {
-	scaledCoef := math.Pow10(depth-1) * rel
+func ComputeMeErtCoreCoefficient(rel float64, appNum int) (float64, error) {
+
+	// getting power of 10
+	var pow int
+	switch true {
+	case appNum <= 10:
+		pow = 1
+	case appNum <= 100:
+		pow = 2
+	case appNum <= 1000:
+		pow = 3
+	case appNum <= 10000:
+		pow = 4
+	default:
+		log.Printf("Undefined App number scale: %d\n", appNum)
+		pow = 1
+	}
+
+	scaledCoef := math.Pow10(pow-1) * rel
 	return getDecimal(scaledCoef)
 }
 

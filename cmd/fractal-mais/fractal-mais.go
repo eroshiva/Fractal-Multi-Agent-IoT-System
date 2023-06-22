@@ -3,9 +3,9 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/benchmarking"
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/internal/benchmarking"
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/internal/measurement"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/draw"
-	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/measurement"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
 	"os"
