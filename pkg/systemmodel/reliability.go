@@ -31,6 +31,9 @@ func (sm *SystemModel) GatherApplicationInstanceReliabilities(appName string) (m
 				return nil, fmt.Errorf("map entry for SystemModel.Layers with key %v does not exist", i)
 			}
 			hasTagIdx := strings.Index(appName, "#")
+			if hasTagIdx == -1 {
+				return nil, fmt.Errorf("incorrect Application name, can't find '#': %s", appName)
+			}
 			appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + appName[hasTagIdx+1:] + "-"
 			for _, v := range layer.Instances {
 				if count == 0 {

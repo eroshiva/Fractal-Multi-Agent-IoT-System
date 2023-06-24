@@ -232,3 +232,20 @@ func TestMeasurementWide2(t *testing.T) {
 		t.Logf("Computed reliability is %v for FMAIS with %d Apps", rel4, val)
 	}
 }
+
+func TestSmWide(t *testing.T) {
+	deviation = 0
+
+	numApps := 100
+	app, appFailed := initializeInputDataWide()
+
+	sm, err := systemmodel.CreateSystemModelWide(numApps)
+	assert.NilError(t, err)
+	assert.Equal(t, len(sm.Applications)-1, numApps)
+
+	err = updateReliabilities(sm, 101, appFailed, app)
+	assert.NilError(t, err)
+
+	_, err = sm.GatherAllApplicationsReliabilities()
+	assert.NilError(t, err)
+}
