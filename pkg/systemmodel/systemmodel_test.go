@@ -93,3 +93,26 @@ func TestSetGetAspect(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, retRelStr, relStr)
 }
+
+func TestGetAppName(t *testing.T) {
+	relStr := "0.53"
+	instance := Instance{}
+
+	instName := "App#4-1-3"
+	instance.CreateInstance(instName, CreateInstanceTypeApp()).SetAspect(reliabilityKey, relStr)
+	retInstName, err := instance.GetAppName()
+	assert.NilError(t, err)
+	assert.Equal(t, retInstName, "App#1")
+
+	instName = "App#4-10-2"
+	instance.CreateInstance(instName, CreateInstanceTypeApp()).SetAspect(reliabilityKey, relStr)
+	retInstName, err = instance.GetAppName()
+	assert.NilError(t, err)
+	assert.Equal(t, retInstName, "App#10")
+
+	instName = "App#4-153-2"
+	instance.CreateInstance(instName, CreateInstanceTypeApp()).SetAspect(reliabilityKey, relStr)
+	retInstName, err = instance.GetAppName()
+	assert.NilError(t, err)
+	assert.Equal(t, retInstName, "App#153")
+}

@@ -412,10 +412,12 @@ func (i *Instance) GetAppName() (string, error) {
 		return i.Name, nil
 	}
 	// if it is an Application, doing some parsing..
-	idx := strings.Index(i.Name, "-") // getting the first index of a dash
-	if idx != -1 {
+	idx := strings.Index(i.Name, "-") // getting the index of a first dash
+	subStr := i.Name[idx+1:]
+	idx2 := strings.Index(subStr, "-") // getting the index of a second dash
+	if idx != -1 && idx2 != -1 {
 		// obtaining actual application number
-		appNumber := i.Name[idx+1 : idx+2]
+		appNumber := i.Name[idx+1 : idx+idx2+1]
 		return "App#" + appNumber, nil
 	}
 	return "", fmt.Errorf("can't parse first dash in the instance name %s", i.Name)
