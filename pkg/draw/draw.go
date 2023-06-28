@@ -22,10 +22,10 @@ type Draw struct {
 	FigureName     string    // carries a figure name
 	XaxisName      string    // carries X-axis name
 	YaxisName      string    // carries Y-axis name
-	xmin           *int64    // optional: sets a minimum boundary for X-axis
-	xmax           *int64    // optional: sets a maximum boundary for X-axis
-	ymin           *int64    // optional: sets a minimum boundary for Y-axis
-	ymax           *int64    // optional: sets a maximum boundary for Y-axis
+	xmin           *float64  // optional: sets a minimum boundary for X-axis
+	xmax           *float64  // optional: sets a maximum boundary for X-axis
+	ymin           *float64  // optional: sets a minimum boundary for Y-axis
+	ymax           *float64  // optional: sets a maximum boundary for Y-axis
 	gridOn         bool      // enable grid on the figure
 	XLength        vg.Length // sets length of an X-axis (in Inches, Cm or mm)
 	YLength        vg.Length // sets length of an Y-axis (in Inches, Cm or mm)
@@ -65,26 +65,26 @@ func (d *Draw) SetYaxisName(yname string) *Draw {
 }
 
 // SetXmin sets a minimum bound for an X-axis
-func (d *Draw) SetXmin(xmin int64) *Draw {
-	*d.xmin = xmin
+func (d *Draw) SetXmin(xmin float64) *Draw {
+	d.xmin = &xmin
 	return d
 }
 
 // SetXmax sets a maximum bound for an X-axis
-func (d *Draw) SetXmax(xmax int64) *Draw {
-	*d.xmax = xmax
+func (d *Draw) SetXmax(xmax float64) *Draw {
+	d.xmax = &xmax
 	return d
 }
 
 // SetYmin sets a minimum bound for an Y-axis
-func (d *Draw) SetYmin(ymin int64) *Draw {
-	*d.ymin = ymin
+func (d *Draw) SetYmin(ymin float64) *Draw {
+	d.ymin = &ymin
 	return d
 }
 
 // SetYmax sets a maximum bound for an Y-axis
-func (d *Draw) SetYmax(ymax int64) *Draw {
-	*d.ymax = ymax
+func (d *Draw) SetYmax(ymax float64) *Draw {
+	d.ymax = &ymax
 	return d
 }
 

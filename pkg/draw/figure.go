@@ -117,7 +117,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	depthFigure := Draw{}
 	depthFigure.InitializeDrawStruct()
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-26-inst").SetFigureName(figureName + "on the FMAIS depth").
-		SetYaxisName("Time [us]").SetXaxisName("Depth [-]")
+		SetYaxisName("Time [ms]").SetXaxisName("Depth [-]")
 	var depthArr []int
 	for i := 1; i <= maxDepth; i++ {
 		depthArr = append(depthArr, i)
@@ -144,7 +144,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 
 	//////// plotting dependencies for applications number
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-26-inst").SetFigureName(figureName + "on the App number").
-		SetYaxisName("Time [us]").SetXaxisName("Apps number [-]")
+		SetYaxisName("Time [ms]").SetXaxisName("Apps number [-]")
 	// iterating over the amount of apps in the system
 	var appArr []int
 	for appNumber := 1; appNumber <= maxAppNumber; appNumber += 5 {
@@ -176,7 +176,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 		instArr = append(instArr, instNumber)
 	}
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-26-apps").SetFigureName(figureName + "on instances per App").
-		SetYaxisName("Time [us]").SetXaxisName("Instances (per App) [-]")
+		SetYaxisName("Time [ms]").SetXaxisName("Instances (per App) [-]")
 	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{26}, instArr)
 	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
@@ -244,7 +244,7 @@ func getLinesForDepth(tc map[int]map[int]map[int]float64, depth []int, appNumber
 			for _, d := range depth {
 				xy := plotter.XY{
 					X: float64(d),
-					Y: tc[d][a][i],
+					Y: tc[d][a][i] / 1000, // converting to milliseconds
 				}
 				line = append(line, xy)
 			}
@@ -267,7 +267,7 @@ func getLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNu
 			for _, a := range appNumber {
 				xy := plotter.XY{
 					X: float64(a),
-					Y: tc[d][a][i],
+					Y: tc[d][a][i] / 1000, // converting to milliseconds
 				}
 				line = append(line, xy)
 			}
@@ -290,7 +290,7 @@ func getLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 			for _, i := range instances {
 				xy := plotter.XY{
 					X: float64(i),
-					Y: tc[d][a][i],
+					Y: tc[d][a][i] / 1000, // converting to milliseconds
 				}
 				line = append(line, xy)
 			}
@@ -378,7 +378,8 @@ func PlotMeasuredReliability(rels map[int]float64, apps, depth int, greyScale, w
 	// initializing structure for the Figure
 	figure := Draw{}
 	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName(fileName).
-		SetXaxisName("Time [us]").SetYaxisName("Reliability [-]")
+		SetXaxisName("Time [us]").SetYaxisName("Reliability [-]").
+		SetYmin(0).SetYmax(1)
 
 	// converting measured reliability to XY data
 	line, err := getLinesForReliability(rels, apps, depth)
@@ -433,11 +434,23 @@ func (d *Draw) initializeAndSetPlotter(meertcore, appsNumberDep bool) *plot.Plot
 	p.X.Label.Text = d.XaxisName
 	p.X.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the X label
 	p.X.Tick.Label.Font.Size = fontsizeLegend      // set the size of the X-axis numbers
+	if d.xmin != nil {
+		p.X.Min = *d.xmin
+	}
+	if d.xmax != nil {
+		p.X.Max = *d.xmax
+	}
 
 	// setting Y-axis name and its parameters
 	p.Y.Label.Text = d.YaxisName
 	p.Y.Label.TextStyle.Font.Size = fontsizeLabels // set the size of the Y label
 	p.Y.Tick.Label.Font.Size = fontsizeLegend      // set the size of the Y-axis numbers
+	if d.ymin != nil {
+		p.Y.Min = *d.ymin
+	}
+	if d.ymax != nil {
+		p.Y.Max = *d.ymax
+	}
 
 	// setting Legend parameters
 	p.Legend.TextStyle.Font.Size = fontsizeLegend // setting size of a Legend
@@ -466,7 +479,8 @@ func PlotMeErtCoreCoefficients(rels map[int]float64, apps, depth int, greyScale,
 	// initializing structure for the Figure
 	figure := Draw{}
 	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName(fileName).
-		SetXaxisName("Time [us]").SetYaxisName("ME-ERT-CORE coefficient [-]")
+		SetXaxisName("Time [us]").SetYaxisName("ME-ERT-CORE coefficient [-]").
+		SetYmin(0).SetYmax(1)
 
 	// converting measured reliability to XY data
 	line, err := getLinesForReliability(rels, apps, depth)
