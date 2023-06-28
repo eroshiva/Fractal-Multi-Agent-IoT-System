@@ -378,7 +378,7 @@ func PlotMeasuredReliability(rels map[int]float64, apps, depth int, greyScale, w
 	// initializing structure for the Figure
 	figure := Draw{}
 	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName(fileName).
-		SetXaxisName("Time [us]").SetYaxisName("Reliability [-]").
+		SetXaxisName("Time [s]").SetYaxisName("Reliability [-]").
 		SetYmin(0).SetYmax(1)
 
 	// converting measured reliability to XY data
@@ -479,7 +479,7 @@ func PlotMeErtCoreCoefficients(rels map[int]float64, apps, depth int, greyScale,
 	// initializing structure for the Figure
 	figure := Draw{}
 	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName(fileName).
-		SetXaxisName("Time [us]").SetYaxisName("ME-ERT-CORE coefficient [-]").
+		SetXaxisName("Time [s]").SetYaxisName("ME-ERT-CORE coefficient [-]").
 		SetYmin(0).SetYmax(1)
 
 	// converting measured reliability to XY data

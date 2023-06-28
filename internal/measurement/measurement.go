@@ -326,10 +326,6 @@ func runMeasurementForDepth4(test bool) error {
 			return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
 		}
 
-		if i == 280 {
-			sm4.PrettyPrintApplications().PrettyPrintLayers()
-		}
-
 		// updating reliability map
 		relArr[i] = rel
 	}
