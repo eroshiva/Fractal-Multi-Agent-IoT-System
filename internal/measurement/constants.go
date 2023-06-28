@@ -8,9 +8,11 @@ const (
 	app2Name    = "App#2"
 	app3Name    = "App#3"
 	app4Name    = "App#4"
-	viName      = "VI"
 	appFailName = "App#1" // all other apps won't fail in large-scale measurement
 )
+
+// this variable is adjusted in each measurement scenario to match a VIaaS (one per system)
+var viName = "VI"
 
 var deviation = 0.025
 

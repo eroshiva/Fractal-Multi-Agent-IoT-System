@@ -244,8 +244,15 @@ func (sm *SystemModel) SetApplicationReliability(appName string, rls map[int64]f
 			if strings.EqualFold(appName, instAppName) {
 				// extract correct instance reliability
 				instRel, xtrctd := rls[instNumber]
-				if !xtrctd {
+				if !xtrctd && !inst.IsVI() {
 					return fmt.Errorf("can't extract reliability for instance %d from %v", instNumber, rls)
+				}
+				// re-try in case we hit VIaaS
+				if inst.IsVI() {
+					instRel, xtrctd = rls[1]
+					if !xtrctd {
+						return fmt.Errorf("can't extract reliability for VIaaS instance %s from %v", inst.Name, rls)
+					}
 				}
 				// update instance's reliability
 				inst.SetReliability(instRel)
