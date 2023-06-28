@@ -300,6 +300,7 @@ func runMeasurementForDepth4(test bool) error {
 
 	// initialising system model
 	sm4 := systemmodel.CreateSystemModelDepth4()
+	viName = "VI#3-4"
 
 	meErtCore := meertcore.MeErtCore{
 		SystemModel: sm4,
@@ -323,6 +324,10 @@ func runMeasurementForDepth4(test bool) error {
 		rel, err := meErtCore.ComputeReliabilityOptimizedSimple()
 		if err != nil {
 			return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
+		}
+
+		if i == 280 {
+			sm4.PrettyPrintApplications().PrettyPrintLayers()
 		}
 
 		// updating reliability map
@@ -368,6 +373,7 @@ func runMeasurementForDepth3(test bool) error {
 
 	// initializing input data
 	app1, app2, app3, vi := initializeInputDataDepth3()
+	viName = "VI#3-3"
 
 	// initialising system model
 	sm3 := systemmodel.CreateSystemModelDepth3()
@@ -439,6 +445,7 @@ func runMeasurementForDepth2(test bool) error {
 
 	// initializing input data
 	app1, app2, vi := initializeInputDataDepth2()
+	viName = "VI#2-1"
 
 	// initialising system model
 	sm2 := systemmodel.CreateSystemModelDepth2()
