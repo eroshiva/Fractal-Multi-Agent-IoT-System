@@ -55,7 +55,7 @@ func (sm *SystemModel) GatherApplicationInstanceReliabilities(appName string) (m
 			}
 		}
 		if count != 0 {
-			fmt.Printf("Not all instances of Application %s were found - missing %d instances", appName, count)
+			fmt.Printf("Not all instances of Application %s were found - missing %d instances\n", appName, count)
 		}
 		sm.Applications[appName].SetReliability(appReliability)
 		return res, nil

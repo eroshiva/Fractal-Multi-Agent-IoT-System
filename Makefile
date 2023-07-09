@@ -23,7 +23,6 @@ install-gobenchdata: ## Installs gobench data tool which parses go bench data in
 example: build ## Runs a unit test, which generates a random system model and plots a graph to showcase it
 	./build/_output/fractal-mais --example
 
-
 bench: build ## Benchmark the codebase in classic way (measure time of the function execution)
 	./build/_output/fractal-mais --benchmark --hardcoded
 
@@ -32,6 +31,9 @@ bench-sm: build ## Benchmark the codebase in a classic way (measure time of the 
 
 bench-rm: build ## Benchmark the ME-ERT-CORE Reliability Model in a classic way (measure time of the function execution)
 	./build/_output/fractal-mais --benchMeErtCORE --hardcoded
+
+bench-rm-optimized: build ## Benchmark the ME-ERT-CORE Reliability Model in a classic way (measure time of the function execution)
+	./build/_output/fractal-mais --benchMeErtCOREoptimized --maxNumInstances 26 --appNumber 100
 
 gobench: build install-gobenchdata ## Benchmark the codebase with gobench
 	go test -bench . -benchmem ./... -timeout 0m -benchtime=${BENCH_TIME} -count=10 | gobenchdata --json ./data/benchmarks.json
@@ -48,13 +50,12 @@ linters: linters-install ## Perform linting to verify codebase
 	golangci-lint run --timeout 5m
 
 test: build linters ## Test the codebase
-	go test -coverprofile=./data/test-cover.out -race gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/internal/...
-	go test -coverprofile=./data/test-cover1.out -race -count=100 gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/...
+	go test -coverprofile=./data/test-cover.out -race gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/...
 
 run: example ## Runs compiled binary and generates an example of Fractal MAIS
 
 clean: ## Remove all the build artifacts
-	rm -rf ./build/_output ./vendor ./data/assets/ ./data/gobenchdata-web.yml ./data/index.html ./data/overrides.css ./data/benchmarks.json ./data/test-cover.out ./data/test-cover1.out
+	rm -rf ./build/_output ./vendor ./data/assets/ ./data/gobenchdata-web.yml ./data/index.html ./data/overrides.css ./data/benchmarks.json ./data/test-cover.out
 	rm -rf ./figures/measurement_*.eps ./figures/measurement_*.png
 	go clean -cache -testcache
 

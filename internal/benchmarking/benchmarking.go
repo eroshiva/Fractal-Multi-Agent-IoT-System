@@ -3,11 +3,14 @@
 package benchmarking
 
 import (
+	"fmt"
+	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/internal/measurement"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/draw"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/meertcore"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/storedata"
 	"gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/pkg/systemmodel"
 	"log"
+	"math/rand"
 	"runtime"
 	"strings"
 	"time"
@@ -314,4 +317,87 @@ func gatherAllocatedBytesSizeInMb() uint64 {
 	runtime.ReadMemStats(&m)
 
 	return m.Alloc / 1024 / 1024
+}
+
+// BenchMeErtCoreOptimized function benchmarks optimized version of ME-ERT-CORE
+func BenchMeErtCoreOptimized(maxInstNum, appNum int, docker, greyScale bool) error {
+	log.Printf("Running benchmarking for large-scale FMAIS with Optimized ME-ERT-CORE\n")
+
+	benchmarkedData = make(map[int]map[int]map[int]float64, 0)
+
+	// initializing input data
+	app, appFailed := measurement.InitializeInputDataWide()
+
+	for depth := 2; depth <= maxDepth; depth++ {
+		benchmarkedData[depth] = make(map[int]map[int]float64, 0)
+		benchmarkedData[depth][appNum] = make(map[int]float64, 0)
+		for inst := 1; inst <= maxInstNum; inst += 5 {
+			sm, err := systemmodel.CreateSystemModelWideBench(appNum, inst, depth)
+			if err != nil {
+				return err
+			}
+
+			log.Printf("ME-ERT-CORE (optimized) benchmarking: %d iterations over FMAIS of depth %v, with %d Apps and %d instances per App\n", numIterations, sm.Depth, appNum, inst)
+			// setting timer to 0
+			timer = 0
+			for iteration := 0; iteration < numIterations; iteration++ {
+
+				meErtCore := meertcore.MeErtCore{
+					SystemModel: sm,
+					Reliability: 0.0,
+				}
+
+				rnd := rand.Intn(300)
+				// setting reliabilities for each instance
+				err = measurement.UpdateReliabilities(meErtCore.SystemModel, rnd, appFailed, app)
+				if err != nil {
+					sm.PrettyPrintApplications().PrettyPrintLayers()
+					return fmt.Errorf("something went wrong during updating of Application/VI reliabilities: %w", err)
+				}
+
+				_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+				if err != nil {
+					sm.PrettyPrintApplications().PrettyPrintLayers()
+					return fmt.Errorf("something went wrong during gathering of all application reliabilities: %w", err)
+				}
+
+				// computing reliability of the FMAIS per (optimized) ME-ERT-CORE
+				start := time.Now()
+				_, err = meErtCore.ComputeReliabilityOptimizedSimple()
+				duration := time.Since(start)
+				if err != nil {
+					sm.PrettyPrintApplications().PrettyPrintLayers()
+					return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
+				}
+				// we know that it's going to be a positive number
+				timer += uint64(duration.Microseconds()) // taking microseconds
+			}
+			log.Printf("ME-ERT-CORE (optimized) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer)/float64(numIterations), timer, numIterations)
+			benchmarkedData[depth][appNum][inst] = float64(timer) / float64(numIterations)
+		}
+	}
+
+	// get current time to format a filename
+	ct := time.Now()
+	// making a string with timestamp
+	ts := ct.Format(time.DateOnly) + "_" + ct.Format(time.TimeOnly)
+	ts = strings.ReplaceAll(ts, ":", "-")
+	if docker {
+		ts = "docker_" + ts
+	}
+	err := storedata.SaveData(benchmarkedData, "benchmark_meertcore_optimized_"+ts)
+	if err != nil {
+		log.Panicf("ME-ERT-CORE (optimized) benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
+	}
+
+	prefix := "MeErtCore_Optimized"
+	if docker {
+		prefix = "Docker_" + prefix
+	}
+	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix, greyScale, true)
+	if err != nil {
+		log.Panicf("ME-ERT-CORE (optimized) benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
+	}
+
+	return nil
 }

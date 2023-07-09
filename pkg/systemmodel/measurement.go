@@ -226,6 +226,9 @@ func (sm *SystemModel) UpdateApplicationReliability(appName string, rls map[int6
 // SetApplicationReliability sets reliability values of all instances of a provided Application
 func (sm *SystemModel) SetApplicationReliability(appName string, rls map[int64]float64) error {
 
+	count := len(rls)
+
+	counter := 0
 	for d := len(sm.Layers); d > 1; d-- {
 		layer, ok := sm.Layers[d]
 		if !ok {
@@ -233,6 +236,9 @@ func (sm *SystemModel) SetApplicationReliability(appName string, rls map[int64]f
 			return fmt.Errorf("layer %d was not found in FMAIS", d)
 		}
 		for _, inst := range layer.Instances {
+			if counter == count {
+				break
+			}
 			instAppName, err := inst.GetAppName()
 			if err != nil {
 				return err
@@ -242,6 +248,7 @@ func (sm *SystemModel) SetApplicationReliability(appName string, rls map[int64]f
 				return err
 			}
 			if strings.EqualFold(appName, instAppName) {
+				counter++
 				// extract correct instance reliability
 				instRel, xtrctd := rls[instNumber]
 				if !xtrctd && !inst.IsVI() {
@@ -260,7 +267,158 @@ func (sm *SystemModel) SetApplicationReliability(appName string, rls map[int64]f
 		}
 	}
 
+	if counter != count && !strings.HasPrefix(appName, "VI") {
+		return fmt.Errorf("couldn't find all instances of the Application %s, found only %d, but expected %d", appName, counter, count)
+	}
+
 	return nil
+}
+
+// CreateSystemModelWideBench creates a FMAIS system model of depth 4 with 100 Applications
+func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, error) {
+	viNumInst := 2      // number of instances per VI
+	viNum := 0          // defining number of VIs on 2nd or 3rd layer (last layer before the layer with Applications only)
+	viNotLastLayer := 0 // number of VIs residing not on a 2nd layer
+
+	// some pre-computations
+	viPrior := 0.1                               // VIaaS priority
+	appPrior := (1 - viPrior) / float64(numApps) // priority for each application
+
+	// how many VIs do we need?
+	chunkVI := 5 // defining a maximum number of Apps hosted by one VI
+	viLastLayer := numApps / chunkVI
+
+	// attaching all apps to the last, 4th, layer
+	viNum = viLastLayer
+	viNotLastLayer = viNum / viNumInst
+
+	systemModel := &SystemModel{}
+	systemModel.InitializeSystemModel(numApps, depth)
+	systemModel.InitializeRootLayer()
+	systemModel.CreateApplication(viNumInst, 1.0, "VI")
+	systemModel.Applications["VI"].SetPriority(viPrior).Deploy()
+
+	switch depth {
+	case 2:
+		// initializing layer 2
+		layer2 := &Layer{
+			VIwasDeployed: true,
+		}
+		layer2.InitializeLayer()
+		// all applications are attached to the Root instance, FMAIS
+		for i := 1; i <= numApps; i++ {
+			appName := "App#" + fmt.Sprintf("%d", i)
+			systemModel.CreateApplication(numAppInst, 1.0, appName)
+			// setting priorities for each application
+			systemModel.Applications[appName].SetPriority(appPrior).Deploy()
+			for instance := 1; instance <= numAppInst; instance++ {
+				appInst := &Instance{}
+				appInst.CreateInstance(fmt.Sprintf("App#2-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(0.41).SetReliability(0.77)
+				// adding this new instance as a relation to the Root node
+				systemModel.Layers[1].Instances[0].AddRelation(appInst)
+				layer2.AddInstanceToLayer(appInst)
+			}
+		}
+		systemModel.AddLayer(layer2, 2)
+	case 3:
+		// creating 2nd layer (VIs only) and creating 3rd layer (Apps only)
+		// initializing layer 2 and layer 3
+		layer2 := &Layer{
+			VIwasDeployed: true,
+		}
+		layer2.InitializeLayer()
+
+		layer3 := &Layer{
+			VIwasDeployed: false,
+		}
+		layer3.InitializeLayer()
+
+		for j := 1; j <= viNum; j++ {
+			vi := &Instance{} // this is VIaaS
+			vi.CreateInstance(fmt.Sprintf("VI#2-%d", j), CreateInstanceTypeVI()).SetPriority(1)
+			// adding these new instances as a relation to the Root node
+			systemModel.Layers[1].Instances[0].AddRelation(vi)
+
+			// all applications are attached to the Root instance, FMAIS
+			for i := (j-1)*chunkVI + 1; i <= chunkVI+(j-1)*chunkVI; i++ {
+				appName := "App#" + fmt.Sprintf("%d", i)
+				systemModel.CreateApplication(numAppInst, 1.0, appName)
+				// setting priorities for each application
+				systemModel.Applications[appName].SetPriority(appPrior).Deploy()
+				for instance := 1; instance <= numAppInst; instance++ {
+					appInst := &Instance{}
+					appInst.CreateInstance(fmt.Sprintf("App#3-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(0.41).SetReliability(0.77)
+					// adding these new instances as a relation to the previously created VI
+					vi.AddRelation(appInst)
+					// adding instances to the 3rd layer
+					layer3.AddInstanceToLayer(appInst)
+				}
+			}
+
+			// adding instances to the 2nd layer
+			layer2.AddInstanceToLayer(vi)
+		}
+		systemModel.AddLayer(layer2, 2)
+		systemModel.AddLayer(layer3, 3)
+	case 4:
+		// creating 2nd and 3rd layer (VIs only), and creating 4th layer (Apps only)
+		// initializing all layers
+		layer2 := &Layer{
+			VIwasDeployed: true,
+		}
+		layer2.InitializeLayer()
+
+		layer3 := &Layer{
+			VIwasDeployed: true,
+		}
+		layer3.InitializeLayer()
+
+		layer4 := &Layer{
+			VIwasDeployed: false,
+		}
+		layer4.InitializeLayer()
+
+		for k := 1; k <= viNotLastLayer; k++ {
+			viL2 := &Instance{} // this is VIaaS
+			viL2.CreateInstance(fmt.Sprintf("VI#2-%d", k), CreateInstanceTypeVI()).SetPriority(1)
+			// adding these new instances as a relation to the Root node
+			systemModel.Layers[1].Instances[0].AddRelation(viL2)
+
+			for j := (k-1)*viNumInst + 1; j <= viNumInst+(k-1)*viNumInst; j++ {
+				vi := &Instance{} // this is VIaaS
+				vi.CreateInstance(fmt.Sprintf("VI#3-%d", j), CreateInstanceTypeVI()).SetPriority(1)
+				// adding these new instances as a relation to the Root node
+				viL2.AddRelation(vi)
+
+				// all applications are attached to the Root instance, FMAIS
+				for i := (j-1)*chunkVI + 1; i <= chunkVI+(j-1)*chunkVI; i++ {
+					appName := "App#" + fmt.Sprintf("%d", i)
+					systemModel.CreateApplication(numAppInst, 1.0, appName)
+					// setting priorities for each application
+					systemModel.Applications[appName].SetPriority(appPrior).Deploy()
+					for instance := 1; instance <= numAppInst; instance++ {
+						appInst := &Instance{}
+						appInst.CreateInstance(fmt.Sprintf("App#4-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(0.41).SetReliability(0.77)
+						// adding these new instances as a relation to the previously created VI
+						vi.AddRelation(appInst)
+						// adding instances to the 4th layer
+						layer4.AddInstanceToLayer(appInst)
+					}
+				}
+
+				// adding instances to the 2nd layer
+				layer3.AddInstanceToLayer(vi)
+			}
+			layer2.AddInstanceToLayer(viL2)
+		}
+		systemModel.AddLayer(layer2, 2)
+		systemModel.AddLayer(layer3, 3)
+		systemModel.AddLayer(layer4, 4)
+	default:
+		return nil, fmt.Errorf("obtained unspecified depth: %d", depth)
+	}
+
+	return systemModel, nil
 }
 
 // CreateSystemModelWide creates a FMAIS system model of depth 4 with 100 Applications
