@@ -9,6 +9,7 @@ import (
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
+	"sort"
 	"strings"
 )
 
@@ -269,7 +270,17 @@ func AddScattersAndLines(plt *plot.Plot, greyScale bool, vs ...interface{}) erro
 	for _, v := range vs {
 		switch t := v.(type) {
 		case map[string]plotter.XYs:
-			for k, val := range t {
+			// sort keys first
+			keys := make([]string, 0, len(t))
+			for key := range t {
+				keys = append(keys, key)
+			}
+			sort.Strings(keys)
+
+			// iterate over sorted map of keys
+			for _, key := range keys {
+				val := t[key]
+
 				sc, err := plotter.NewScatter(val)
 				if err != nil {
 					return err
@@ -294,9 +305,9 @@ func AddScattersAndLines(plt *plot.Plot, greyScale bool, vs ...interface{}) erro
 
 				// adding a legend
 				if greyScale {
-					items = append(items, item1{name: k, value: sc}) // adding scatters to the legend
+					items = append(items, item1{name: key, value: sc}) // adding scatters to the legend
 				} else {
-					items = append(items, item1{name: k, value: l}) // adding dash lines to the legend
+					items = append(items, item1{name: key, value: l}) // adding dash lines to the legend
 				}
 
 				// incrementing a value (responsible for different color, shape (i.c.o. Scatters) and dash type (i.c.o. Line)
