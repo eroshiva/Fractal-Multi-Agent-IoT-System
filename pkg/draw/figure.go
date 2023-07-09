@@ -175,6 +175,14 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	for instNumber := 1; instNumber <= maxNumInstancesPerApp; instNumber += 5 {
 		instArr = append(instArr, instNumber)
 	}
+
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-1-apps").SetFigureName(figureName + "on instances per App")
+	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{1}, instArr)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	if err != nil {
+		return err
+	}
+
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-26-apps").SetFigureName(figureName + "on instances per App").
 		SetYaxisName("Time [ms]").SetXaxisName("Instances (per App) [-]")
 	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{26}, instArr)
@@ -192,13 +200,6 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-96-apps").SetFigureName(figureName + "on instances per App")
 	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{96}, instArr)
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
-	if err != nil {
-		return err
-	}
-
-	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-1-apps").SetFigureName(figureName + "on instances per App")
-	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{1}, instArr)
 	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
