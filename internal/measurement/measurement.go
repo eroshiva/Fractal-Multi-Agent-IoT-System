@@ -51,14 +51,14 @@ type vi struct {
 	inst map[int]float64
 }
 
-// appNoFail structure holds input data for Application (which does NOT fail)
-type appNoFail struct {
+// AppNoFail structure holds input data for Application (which does NOT fail)
+type AppNoFail struct {
 	inst1 map[int]float64
 	inst2 map[int]float64
 }
 
-// appFail structure holds input data for Application (which FAILS)
-type appFail struct {
+// AppFail structure holds input data for Application (which FAILS)
+type AppFail struct {
 	inst1 map[int]float64
 	inst2 map[int]float64
 }
@@ -101,11 +101,16 @@ func generateRandomVectorOfLength(meanVal float64, length int) map[int]float64 {
 
 	for i := 0; i < length; i++ {
 		// an elegant solution
-		rnd := (rand.Float64()*2-1)*deviation + meanVal
+		rnd := generateRandomNumberWithMeanValue(meanVal)
 		arr[i] = rnd
 	}
 
 	return arr
+}
+
+// generateRandomNumberWithMeanValue generates random float64 number around value defined in meanVal with deviation
+func generateRandomNumberWithMeanValue(meanVal float64) float64 {
+	return (rand.Float64()*2-1)*deviation + meanVal
 }
 
 // generateInputDataForInstance generates input data for Application #1
@@ -200,15 +205,15 @@ func initializeInputDataDepth2() (app1, app2, vi) {
 	return app1, app2, viaas
 }
 
-// initializeInputDataWide function initializes input data for the large-scale measurement with Depth 4
-func initializeInputDataWide() (appNoFail, appFail) {
+// InitializeInputDataWide function initializes input data for the large-scale measurement with Depth 4
+func InitializeInputDataWide() (AppNoFail, AppFail) {
 
-	app := appNoFail{
+	app := AppNoFail{
 		inst1: generateInputDataForInstance(appInst1),
 		inst2: generateInputDataForInstance(appInst2),
 	}
 
-	appF := appFail{
+	appF := AppFail{
 		inst1: generateInputDataForInstance(appFailInst1),
 		inst2: generateInputDataForInstance(appFailInst2),
 	}
@@ -216,7 +221,8 @@ func initializeInputDataWide() (appNoFail, appFail) {
 	return app, appF
 }
 
-func updateReliabilities(sm *systemmodel.SystemModel, step int, i ...interface{}) error {
+// UpdateReliabilities function updates reliability values for provided apps for certain step
+func UpdateReliabilities(sm *systemmodel.SystemModel, step int, i ...interface{}) error {
 
 	for _, item := range i {
 		switch t := item.(type) {
@@ -259,25 +265,53 @@ func updateReliabilities(sm *systemmodel.SystemModel, step int, i ...interface{}
 			if err != nil {
 				return fmt.Errorf("something went wrong during update of VI instance reliabilities: %w", err)
 			}
-		case appFail:
-			err := sm.UpdateApplicationReliability(appFailName, map[int64]float64{
-				1: t.inst1[step],
-				2: t.inst2[step],
-			})
+		case AppFail:
+			rels := make(map[int64]float64, 0)
+			application, ok := sm.Applications[appFailName]
+			if !ok {
+				sm.PrettyPrintApplications()
+				return fmt.Errorf("couldn't extract application %s from application list", appFailName)
+			}
+			if application.Rules != 2 {
+				// randomly setting numbers
+				for c := 1; c <= application.Rules; c++ {
+					rels[int64(c)] = generateRandomNumberWithMeanValue(t.inst2[step])
+				}
+			} else {
+				rels = map[int64]float64{
+					1: t.inst1[step],
+					2: t.inst2[step],
+				}
+			}
+			err := sm.UpdateApplicationReliability(appFailName, rels)
 			if err != nil {
 				return fmt.Errorf("something went wrong during update of %s (Failed App) instance reliabilities: %w", appFailName, err)
 			}
-		case appNoFail:
+		case AppNoFail:
 			appName := "App#"
 			for a := 2; a <= len(sm.Applications)-1; a++ {
-				updVal := appNoFail{
+				updVal := AppNoFail{
 					inst1: generateInputDataForInstance(appInst1),
 					inst2: generateInputDataForInstance(appInst2),
 				}
-				err := sm.UpdateApplicationReliability(appName+strconv.Itoa(a), map[int64]float64{
-					1: updVal.inst1[step],
-					2: updVal.inst2[step],
-				})
+				rels := make(map[int64]float64, 0)
+				application, ok := sm.Applications[appName+strconv.Itoa(a)]
+				if !ok {
+					sm.PrettyPrintApplications()
+					return fmt.Errorf("couldn't extract application %s from application list", appName+strconv.Itoa(a))
+				}
+				if application.Rules != 2 {
+					// randomly setting numbers
+					for c := 1; c <= application.Rules; c++ {
+						rels[int64(c)] = generateRandomNumberWithMeanValue(updVal.inst2[step])
+					}
+				} else {
+					rels = map[int64]float64{
+						1: updVal.inst1[step],
+						2: updVal.inst2[step],
+					}
+				}
+				err := sm.UpdateApplicationReliability(appName+strconv.Itoa(a), rels)
 				if err != nil {
 					return fmt.Errorf("something went wrong during update of %s instance reliabilities: %w", appName+strconv.Itoa(a), err)
 				}
@@ -310,7 +344,7 @@ func runMeasurementForDepth4(test bool) error {
 	// running the measurement itself
 	for i := 1; i <= 300; i++ {
 		// setting reliabilities for each instance
-		err := updateReliabilities(meErtCore.SystemModel, i, app1, app2, app3, app4, vi)
+		err := UpdateReliabilities(meErtCore.SystemModel, i, app1, app2, app3, app4, vi)
 		if err != nil {
 			return fmt.Errorf("something went wrong during updating of Application/VI reliabilities: %w", err)
 		}
@@ -382,7 +416,7 @@ func runMeasurementForDepth3(test bool) error {
 	// running the measurement itself
 	for i := 1; i <= 300; i++ {
 		// setting reliabilities for each instance
-		err := updateReliabilities(meErtCore.SystemModel, i, app1, app2, app3, vi)
+		err := UpdateReliabilities(meErtCore.SystemModel, i, app1, app2, app3, vi)
 		if err != nil {
 			return fmt.Errorf("something went wrong during updating of Application/VI reliabilities: %w", err)
 		}
@@ -454,7 +488,7 @@ func runMeasurementForDepth2(test bool) error {
 	// running the measurement itself
 	for i := 1; i <= 300; i++ {
 		// setting reliabilities for each instance
-		err := updateReliabilities(meErtCore.SystemModel, i, app1, app2, vi)
+		err := UpdateReliabilities(meErtCore.SystemModel, i, app1, app2, vi)
 		if err != nil {
 			return fmt.Errorf("something went wrong during updating of Application/VI reliabilities: %w", err)
 		}
@@ -539,7 +573,7 @@ func runMeasurementWide(maxAppNum, step int, test bool) error {
 	meErtCoreCoefs := make(map[int]map[int]float64, 0)
 
 	// initializing input data
-	app, appFailed := initializeInputDataWide()
+	app, appFailed := InitializeInputDataWide()
 
 	for a := 10; a <= maxAppNum; a = a + step {
 		log.Printf("Running large-scale measurement for FMAIS with %d Apps\n", a)
@@ -561,7 +595,7 @@ func runMeasurementWide(maxAppNum, step int, test bool) error {
 		// running the measurement itself
 		for i := 1; i <= 300; i++ {
 			// setting reliabilities for each instance
-			err = updateReliabilities(meErtCore.SystemModel, i, appFailed, app)
+			err = UpdateReliabilities(meErtCore.SystemModel, i, appFailed, app)
 			if err != nil {
 				return fmt.Errorf("something went wrong during updating of Application/VI reliabilities: %w", err)
 			}

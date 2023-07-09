@@ -42,7 +42,8 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().Bool("benchmark", false, "performs a time complexity benchmarking of a Fractal MAIS system model algorithm and ME-ERT-CORE algorithms")
 	cmd.PersistentFlags().Bool("hardcoded", false, "performs a hardcoded benchmarking (with hardcoded values")
 	cmd.PersistentFlags().Bool("benchFMAIS", false, "performs a time complexity benchmarking of a Fractal MAIS system model algorithm")
-	cmd.PersistentFlags().Bool("benchMeErtCORE", false, "performs a time complexity benchmarking of a ME-ERT-CORE algorithms")
+	cmd.PersistentFlags().Bool("benchMeErtCORE", false, "performs a time complexity benchmarking of a ME-ERT-CORE algorithm")
+	cmd.PersistentFlags().Bool("benchMeErtCOREoptimized", false, "performs a time complexity benchmarking of an optimized version of ME-ERT-CORE algorithm")
 	// ToDo - this is to be done in the near future..
 	//cmd.PersistentFlags().Bool("benchErtCORE", false, "performs a time complexity benchmarking of a ERT-CORE algorithms")
 	cmd.PersistentFlags().IntVar(&iterations, "iterations", 25000, "sets a number of iterations per single parameter set to perform")
@@ -63,6 +64,7 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	hardcoded, _ := cmd.Flags().GetBool("hardcoded")
 	benchFMAIS, _ := cmd.Flags().GetBool("benchFMAIS")
 	benchMeErtCORE, _ := cmd.Flags().GetBool("benchMeErtCORE")
+	benchMeErtCOREoptimized, _ := cmd.Flags().GetBool("benchMeErtCOREoptimized")
 	//benchErtCORE, _ := cmd.Flags().GetBool("benchErtCORE")
 	iterations, _ = cmd.Flags().GetInt("iterations")
 	genFig, _ = cmd.Flags().GetStringArray("generateFigures")
@@ -124,6 +126,14 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 			return err
 		}
 	}
+
+	if benchMeErtCOREoptimized {
+		err := benchmarking.BenchMeErtCoreOptimized(appNumber, maxNumInstances, docker, greyScale)
+		if err != nil {
+			return err
+		}
+	}
+
 	//if benchErtCORE {
 	//	err := benchmarking.BenchErtCORE(docker)
 	//	if err != nil {

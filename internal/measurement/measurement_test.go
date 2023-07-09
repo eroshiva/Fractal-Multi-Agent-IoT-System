@@ -28,7 +28,7 @@ func TestUpdateReliabilities(t *testing.T) {
 	assert.Equal(t, rel, 0.77)
 
 	// setting initial reliabilities (in step #1)
-	err = updateReliabilities(meErtCore.SystemModel, 1, app1, app2, vi)
+	err = UpdateReliabilities(meErtCore.SystemModel, 1, app1, app2, vi)
 	assert.NilError(t, err)
 
 	// verifying that they were set successfully
@@ -70,7 +70,7 @@ func TestUpdateReliabilities(t *testing.T) {
 	// iterating a bit more and checking critical points for us
 	for i := 2; i <= 100; i++ {
 		// setting reliabilities for each instance
-		err := updateReliabilities(meErtCore.SystemModel, i, app1, app2, vi)
+		err := UpdateReliabilities(meErtCore.SystemModel, i, app1, app2, vi)
 		assert.NilError(t, err)
 		// Application #1, instance 1
 		if i == 60 {
@@ -147,7 +147,7 @@ func TestMeasurementWide2(t *testing.T) {
 	tc = append(tc, 1000) // FMAIS of depth 4 with 1000 Apps
 
 	// initializing input data
-	app, appFailed := initializeInputDataWide()
+	app, appFailed := InitializeInputDataWide()
 
 	// iterating over test cases
 	for _, val := range tc {
@@ -163,7 +163,7 @@ func TestMeasurementWide2(t *testing.T) {
 
 		///// step 1
 		// setting reliabilities for each instance
-		err = updateReliabilities(meErtCore.SystemModel, 1, appFailed, app)
+		err = UpdateReliabilities(meErtCore.SystemModel, 1, appFailed, app)
 		assert.NilError(t, err)
 
 		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
@@ -177,7 +177,7 @@ func TestMeasurementWide2(t *testing.T) {
 
 		///// step 101
 		// setting reliabilities for each instance
-		err = updateReliabilities(meErtCore.SystemModel, 101, appFailed, app)
+		err = UpdateReliabilities(meErtCore.SystemModel, 101, appFailed, app)
 		assert.NilError(t, err)
 
 		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
@@ -191,7 +191,7 @@ func TestMeasurementWide2(t *testing.T) {
 
 		///// step 150
 		// setting reliabilities for each instance
-		err = updateReliabilities(meErtCore.SystemModel, 150, appFailed, app)
+		err = UpdateReliabilities(meErtCore.SystemModel, 150, appFailed, app)
 		assert.NilError(t, err)
 
 		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
@@ -205,7 +205,7 @@ func TestMeasurementWide2(t *testing.T) {
 
 		///// step 170
 		// setting reliabilities for each instance
-		err = updateReliabilities(meErtCore.SystemModel, 170, appFailed, app)
+		err = UpdateReliabilities(meErtCore.SystemModel, 170, appFailed, app)
 		assert.NilError(t, err)
 
 		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
@@ -219,7 +219,7 @@ func TestMeasurementWide2(t *testing.T) {
 
 		///// step 200
 		// setting reliabilities for each instance
-		err = updateReliabilities(meErtCore.SystemModel, 200, appFailed, app)
+		err = UpdateReliabilities(meErtCore.SystemModel, 200, appFailed, app)
 		assert.NilError(t, err)
 
 		_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
@@ -233,17 +233,36 @@ func TestMeasurementWide2(t *testing.T) {
 	}
 }
 
-func TestSmWide(t *testing.T) {
+func TestSmWideBench(t *testing.T) {
 	deviation = 0
 
 	numApps := 100
-	app, appFailed := initializeInputDataWide()
+	app, appFailed := InitializeInputDataWide()
 
-	sm, err := systemmodel.CreateSystemModelWide(numApps)
+	sm, err := systemmodel.CreateSystemModelWideBench(numApps, 2, 4)
+	assert.NilError(t, err)
+	assert.Equal(t, len(sm.Applications)-1, numApps)
+	assert.Equal(t, sm.Depth, 4)
+	//sm.PrettyPrintApplications().PrettyPrintLayers()
+
+	err = UpdateReliabilities(sm, 101, appFailed, app)
+	assert.NilError(t, err)
+
+	_, err = sm.GatherAllApplicationsReliabilities()
+	assert.NilError(t, err)
+}
+
+func TestSmWideBench2(t *testing.T) {
+	deviation = 0.05
+
+	numApps := 100
+	app, appFailed := InitializeInputDataWide()
+
+	sm, err := systemmodel.CreateSystemModelWideBench(numApps, 26, 4)
 	assert.NilError(t, err)
 	assert.Equal(t, len(sm.Applications)-1, numApps)
 
-	err = updateReliabilities(sm, 101, appFailed, app)
+	err = UpdateReliabilities(sm, 101, appFailed, app)
 	assert.NilError(t, err)
 
 	_, err = sm.GatherAllApplicationsReliabilities()
