@@ -29,10 +29,11 @@ bench: build ## Benchmark the codebase in classic way (measure time of the funct
 bench-sm: build ## Benchmark the codebase in a classic way (measure time of the function execution)
 	./build/_output/fractal-mais --benchFMAIS --hardcoded
 
-bench-rm: build ## Benchmark the ME-ERT-CORE Reliability Model in a classic way (measure time of the function execution)
+bench-rm: build ## Benchmark the ME-ERT-CORE Reliability Model (both, per definition and optimized) in a classic way (measure time of the function execution)
 	./build/_output/fractal-mais --benchMeErtCORE --hardcoded
+	./build/_output/fractal-mais --benchMeErtCOREoptimized --maxNumInstances 26 --appNumber 100
 
-bench-rm-optimized: build ## Benchmark the ME-ERT-CORE Reliability Model in a classic way (measure time of the function execution)
+bench-rm-optimized: build ## Benchmark the ME-ERT-CORE (optimized) Reliability Model in a classic way (measure time of the function execution)
 	./build/_output/fractal-mais --benchMeErtCOREoptimized --maxNumInstances 26 --appNumber 100
 
 gobench: build install-gobenchdata ## Benchmark the codebase with gobench
