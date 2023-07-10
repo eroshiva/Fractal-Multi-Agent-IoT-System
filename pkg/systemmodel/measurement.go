@@ -280,6 +280,9 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 	viNum := 0          // defining number of VIs on 2nd or 3rd layer (last layer before the layer with Applications only)
 	viNotLastLayer := 0 // number of VIs residing not on a 2nd layer
 
+	// defining an instance priority
+	instancePriority := 1 / float64(numAppInst)
+
 	// some pre-computations
 	viPrior := 0.1                               // VIaaS priority
 	appPrior := (1 - viPrior) / float64(numApps) // priority for each application
@@ -313,7 +316,7 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 			systemModel.Applications[appName].SetPriority(appPrior).Deploy()
 			for instance := 1; instance <= numAppInst; instance++ {
 				appInst := &Instance{}
-				appInst.CreateInstance(fmt.Sprintf("App#2-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(0.41).SetReliability(0.77)
+				appInst.CreateInstance(fmt.Sprintf("App#2-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(instancePriority).SetReliability(0.77)
 				// adding this new instance as a relation to the Root node
 				systemModel.Layers[1].Instances[0].AddRelation(appInst)
 				layer2.AddInstanceToLayer(appInst)
@@ -347,7 +350,7 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 				systemModel.Applications[appName].SetPriority(appPrior).Deploy()
 				for instance := 1; instance <= numAppInst; instance++ {
 					appInst := &Instance{}
-					appInst.CreateInstance(fmt.Sprintf("App#3-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(0.41).SetReliability(0.77)
+					appInst.CreateInstance(fmt.Sprintf("App#3-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(instancePriority).SetReliability(0.77)
 					// adding these new instances as a relation to the previously created VI
 					vi.AddRelation(appInst)
 					// adding instances to the 3rd layer
@@ -398,7 +401,7 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 					systemModel.Applications[appName].SetPriority(appPrior).Deploy()
 					for instance := 1; instance <= numAppInst; instance++ {
 						appInst := &Instance{}
-						appInst.CreateInstance(fmt.Sprintf("App#4-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(0.41).SetReliability(0.77)
+						appInst.CreateInstance(fmt.Sprintf("App#4-%d-%d", i, instance), CreateInstanceTypeApp()).SetPriority(instancePriority).SetReliability(0.77)
 						// adding these new instances as a relation to the previously created VI
 						vi.AddRelation(appInst)
 						// adding instances to the 4th layer

@@ -324,6 +324,10 @@ func BenchMeErtCoreOptimized(maxInstNum, appNum int, docker, greyScale bool) err
 	log.Printf("Running benchmarking for large-scale FMAIS with Optimized ME-ERT-CORE\n")
 
 	benchmarkedData = make(map[int]map[int]map[int]float64, 0)
+	benchmarkedDataOptimized := make(map[int]map[int]map[int]float64, 0)
+
+	var timer1 uint64 // initializing timer to store time for the Optimized version of the ME-ERT-CORE computations
+	var timer2 uint64 // initializing timer to store time for the Original (per definition) version of the ME-ERT-CORE computations
 
 	// initializing input data
 	app, appFailed := measurement.InitializeInputDataWide()
@@ -331,15 +335,18 @@ func BenchMeErtCoreOptimized(maxInstNum, appNum int, docker, greyScale bool) err
 	for depth := 2; depth <= maxDepth; depth++ {
 		benchmarkedData[depth] = make(map[int]map[int]float64, 0)
 		benchmarkedData[depth][appNum] = make(map[int]float64, 0)
+		benchmarkedDataOptimized[depth] = make(map[int]map[int]float64, 0)
+		benchmarkedDataOptimized[depth][appNum] = make(map[int]float64, 0)
 		for inst := 1; inst <= maxInstNum; inst += 5 {
 			sm, err := systemmodel.CreateSystemModelWideBench(appNum, inst, depth)
 			if err != nil {
 				return err
 			}
 
-			log.Printf("ME-ERT-CORE (optimized) benchmarking: %d iterations over FMAIS of depth %v, with %d Apps and %d instances per App\n", numIterations, sm.Depth, appNum, inst)
+			log.Printf("ME-ERT-CORE (optimized vs per definition) benchmarking: %d iterations over FMAIS of depth %v, with %d Apps and %d instances per App\n", numIterations, sm.Depth, appNum, inst)
 			// setting timer to 0
-			timer = 0
+			timer1 = 0
+			timer2 = 0
 			for iteration := 0; iteration < numIterations; iteration++ {
 
 				meErtCore := meertcore.MeErtCore{
@@ -361,19 +368,32 @@ func BenchMeErtCoreOptimized(maxInstNum, appNum int, docker, greyScale bool) err
 					return fmt.Errorf("something went wrong during gathering of all application reliabilities: %w", err)
 				}
 
-				// computing reliability of the FMAIS per (optimized) ME-ERT-CORE
-				start := time.Now()
+				// computing reliability of the FMAIS with (optimized) ME-ERT-CORE
+				start1 := time.Now()
 				_, err = meErtCore.ComputeReliabilityOptimizedSimple()
-				duration := time.Since(start)
+				duration1 := time.Since(start1)
 				if err != nil {
 					sm.PrettyPrintApplications().PrettyPrintLayers()
 					return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
 				}
 				// we know that it's going to be a positive number
-				timer += uint64(duration.Microseconds()) // taking microseconds
+				timer1 += uint64(duration1.Microseconds()) // taking microseconds
+
+				// computing reliability of the FMAIS with (per definition) ME-ERT-CORE
+				start2 := time.Now()
+				_, err = meErtCore.ComputeReliabilityPerDefinition()
+				duration2 := time.Since(start2)
+				if err != nil {
+					sm.PrettyPrintApplications().PrettyPrintLayers()
+					return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
+				}
+				// we know that it's going to be a positive number
+				timer2 += uint64(duration2.Microseconds()) // taking microseconds
 			}
-			log.Printf("ME-ERT-CORE (optimized) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer)/float64(numIterations), timer, numIterations)
-			benchmarkedData[depth][appNum][inst] = float64(timer) / float64(numIterations)
+			log.Printf("ME-ERT-CORE (optimized) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer1)/float64(numIterations), timer1, numIterations)
+			benchmarkedDataOptimized[depth][appNum][inst] = float64(timer1) / float64(numIterations)
+			log.Printf("ME-ERT-CORE (per definition) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer2)/float64(numIterations), timer2, numIterations)
+			benchmarkedData[depth][appNum][inst] = float64(timer2) / float64(numIterations)
 		}
 	}
 
@@ -385,18 +405,32 @@ func BenchMeErtCoreOptimized(maxInstNum, appNum int, docker, greyScale bool) err
 	if docker {
 		ts = "docker_" + ts
 	}
-	err := storedata.SaveData(benchmarkedData, "benchmark_meertcore_optimized_"+ts)
+	err := storedata.SaveData(benchmarkedDataOptimized, "benchmark_meertcore_optimized_"+ts)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE (optimized) benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
+	}
+
+	err = storedata.SaveData(benchmarkedData, "benchmark_meertcore_per_definition_"+ts)
+	if err != nil {
+		log.Panicf("ME-ERT-CORE (per definition) benchmarking: Something went wrong when storing bechmarked data... %v\n", err)
 	}
 
 	prefix := "MeErtCore_Optimized"
 	if docker {
 		prefix = "Docker_" + prefix
 	}
-	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix, greyScale, true)
+	err = draw.PlotTimeComplexities(benchmarkedDataOptimized, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix, greyScale, true)
 	if err != nil {
 		log.Panicf("ME-ERT-CORE (optimized) benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
+	}
+
+	prefix = "MeErtCore_Per_Definition"
+	if docker {
+		prefix = "Docker_" + prefix
+	}
+	err = draw.PlotTimeComplexities(benchmarkedData, maxDepth, maxAppNumber, maxNumInstancesPerApp, prefix, greyScale, true)
+	if err != nil {
+		log.Panicf("ME-ERT-CORE (per definition) benchmarking: Something went wrong during plotting of the results of benchmarking... %v\n", err)
 	}
 
 	return nil

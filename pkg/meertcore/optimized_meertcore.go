@@ -77,30 +77,32 @@ func (me *MeErtCore) ComputeReliabilityOptimizedSimple() (float64, error) {
 			}
 			reliability += rlblty * priority
 			me.SystemModel.Applications[k].SetReliability(rlblty * priority)
-		} else if strings.HasPrefix(k, "VI") {
-			// gather reliability of all VIs, which do not deploy any further instance
-			var viRel float64
-			viPriority, err := me.SystemModel.Applications["VI"].GetPriority()
-			if err != nil {
-				return 0, err
-			}
-			for d := len(me.SystemModel.Layers); d > 0; d-- {
-				for _, val := range me.SystemModel.Layers[d].Instances {
-					if val.IsVI() && len(val.Relations) == 0 {
-						priority, err := val.GetPriority()
-						if err != nil {
-							return 0, fmt.Errorf("application %s: %w", val.Name, err)
-						}
-						rlblty, err := val.GetReliability()
-						if err != nil {
-							return 0, fmt.Errorf("application %s: %w", val.Name, err)
-						}
-						viRel += rlblty * priority * viPriority
-					}
-				}
-			}
-			reliability += viRel
 		}
+		// Fuck off VI from the reliability!
+		//else if strings.HasPrefix(k, "VI") {
+		//	// gather reliability of all VIs, which do not deploy any further instance
+		//	var viRel float64
+		//	viPriority, err := me.SystemModel.Applications["VI"].GetPriority()
+		//	if err != nil {
+		//		return 0, err
+		//	}
+		//	for d := len(me.SystemModel.Layers); d > 0; d-- {
+		//		for _, val := range me.SystemModel.Layers[d].Instances {
+		//			if val.IsVI() && len(val.Relations) == 0 {
+		//				priority, err := val.GetPriority()
+		//				if err != nil {
+		//					return 0, fmt.Errorf("application %s: %w", val.Name, err)
+		//				}
+		//				rlblty, err := val.GetReliability()
+		//				if err != nil {
+		//					return 0, fmt.Errorf("application %s: %w", val.Name, err)
+		//				}
+		//				viRel += rlblty * priority * viPriority
+		//			}
+		//		}
+		//	}
+		//	reliability += viRel
+		//}
 	}
 	me.Reliability = reliability
 	return reliability, nil
