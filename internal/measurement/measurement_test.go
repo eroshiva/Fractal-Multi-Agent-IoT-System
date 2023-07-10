@@ -243,7 +243,6 @@ func TestSmWideBench(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, len(sm.Applications)-1, numApps)
 	assert.Equal(t, sm.Depth, 4)
-	//sm.PrettyPrintApplications().PrettyPrintLayers()
 
 	err = UpdateReliabilities(sm, 101, appFailed, app)
 	assert.NilError(t, err)
@@ -262,9 +261,22 @@ func TestSmWideBench2(t *testing.T) {
 	assert.NilError(t, err)
 	assert.Equal(t, len(sm.Applications)-1, numApps)
 
-	err = UpdateReliabilities(sm, 101, appFailed, app)
+	meErtCore := meertcore.MeErtCore{
+		SystemModel: sm,
+		Reliability: 0.0,
+	}
+
+	err = UpdateReliabilities(meErtCore.SystemModel, 101, appFailed, app)
 	assert.NilError(t, err)
 
-	_, err = sm.GatherAllApplicationsReliabilities()
+	_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
 	assert.NilError(t, err)
+
+	_, err = meErtCore.ComputeReliabilityOptimizedSimple()
+	assert.NilError(t, err)
+	t.Logf("Reliability computed with ME-ERT-CORE (optimized) is %v\n", meErtCore.Reliability)
+
+	_, err = meErtCore.ComputeReliabilityPerDefinition()
+	assert.NilError(t, err)
+	t.Logf("Reliability computed with ME-ERT-CORE (per definition) is %v\n", meErtCore.Reliability)
 }
