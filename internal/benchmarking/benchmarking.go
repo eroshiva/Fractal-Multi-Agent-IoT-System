@@ -320,7 +320,7 @@ func gatherAllocatedBytesSizeInMb() uint64 {
 }
 
 // BenchMeErtCoreOptimized function benchmarks optimized version of ME-ERT-CORE
-func BenchMeErtCoreOptimized(maxInstNum, appNum int, docker, greyScale bool) error {
+func BenchMeErtCoreOptimized(maxInstNum, maxAppNum int, docker, greyScale bool) error {
 	log.Printf("Running benchmarking for large-scale FMAIS with Optimized ME-ERT-CORE\n")
 
 	benchmarkedData = make(map[int]map[int]map[int]float64, 0)
@@ -334,66 +334,68 @@ func BenchMeErtCoreOptimized(maxInstNum, appNum int, docker, greyScale bool) err
 
 	for depth := 2; depth <= maxDepth; depth++ {
 		benchmarkedData[depth] = make(map[int]map[int]float64, 0)
-		benchmarkedData[depth][appNum] = make(map[int]float64, 0)
 		benchmarkedDataOptimized[depth] = make(map[int]map[int]float64, 0)
-		benchmarkedDataOptimized[depth][appNum] = make(map[int]float64, 0)
-		for inst := 1; inst <= maxInstNum; inst += 5 {
-			sm, err := systemmodel.CreateSystemModelWideBench(appNum, inst, depth)
-			if err != nil {
-				return err
+		for appNum := 1; appNum <= maxAppNum; appNum += 5 {
+			benchmarkedData[depth][appNum] = make(map[int]float64, 0)
+			benchmarkedDataOptimized[depth][appNum] = make(map[int]float64, 0)
+			for inst := 1; inst <= maxInstNum; inst += 5 {
+				sm, err := systemmodel.CreateSystemModelWideBench(appNum, inst, depth)
+				if err != nil {
+					return err
+				}
+
+				log.Printf("ME-ERT-CORE (optimized vs per definition) benchmarking: %d iterations over FMAIS of depth %v, with %d Apps and %d instances per App\n", numIterations, sm.Depth, appNum, inst)
+				// setting timer to 0
+				timer1 = 0
+				timer2 = 0
+				for iteration := 0; iteration < numIterations; iteration++ {
+
+					meErtCore := meertcore.MeErtCore{
+						SystemModel: sm,
+						Reliability: 0.0,
+					}
+
+					rnd := rand.Intn(300)
+					// setting reliabilities for each instance
+					err = measurement.UpdateReliabilities(meErtCore.SystemModel, rnd, appFailed, app)
+					if err != nil {
+						sm.PrettyPrintApplications().PrettyPrintLayers()
+						return fmt.Errorf("something went wrong during updating of Application/VI reliabilities: %w", err)
+					}
+
+					_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+					if err != nil {
+						sm.PrettyPrintApplications().PrettyPrintLayers()
+						return fmt.Errorf("something went wrong during gathering of all application reliabilities: %w", err)
+					}
+
+					// computing reliability of the FMAIS with (optimized) ME-ERT-CORE
+					start1 := time.Now()
+					_, err = meErtCore.ComputeReliabilityOptimizedSimple()
+					duration1 := time.Since(start1)
+					if err != nil {
+						sm.PrettyPrintApplications().PrettyPrintLayers()
+						return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
+					}
+					// we know that it's going to be a positive number
+					timer1 += uint64(duration1.Microseconds()) // taking microseconds
+
+					// computing reliability of the FMAIS with (per definition) ME-ERT-CORE
+					start2 := time.Now()
+					_, err = meErtCore.ComputeReliabilityPerDefinition()
+					duration2 := time.Since(start2)
+					if err != nil {
+						sm.PrettyPrintApplications().PrettyPrintLayers()
+						return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
+					}
+					// we know that it's going to be a positive number
+					timer2 += uint64(duration2.Microseconds()) // taking microseconds
+				}
+				log.Printf("ME-ERT-CORE (optimized) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer1)/float64(numIterations), timer1, numIterations)
+				benchmarkedDataOptimized[depth][appNum][inst] = float64(timer1) / float64(numIterations)
+				log.Printf("ME-ERT-CORE (per definition) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer2)/float64(numIterations), timer2, numIterations)
+				benchmarkedData[depth][appNum][inst] = float64(timer2) / float64(numIterations)
 			}
-
-			log.Printf("ME-ERT-CORE (optimized vs per definition) benchmarking: %d iterations over FMAIS of depth %v, with %d Apps and %d instances per App\n", numIterations, sm.Depth, appNum, inst)
-			// setting timer to 0
-			timer1 = 0
-			timer2 = 0
-			for iteration := 0; iteration < numIterations; iteration++ {
-
-				meErtCore := meertcore.MeErtCore{
-					SystemModel: sm,
-					Reliability: 0.0,
-				}
-
-				rnd := rand.Intn(300)
-				// setting reliabilities for each instance
-				err = measurement.UpdateReliabilities(meErtCore.SystemModel, rnd, appFailed, app)
-				if err != nil {
-					sm.PrettyPrintApplications().PrettyPrintLayers()
-					return fmt.Errorf("something went wrong during updating of Application/VI reliabilities: %w", err)
-				}
-
-				_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
-				if err != nil {
-					sm.PrettyPrintApplications().PrettyPrintLayers()
-					return fmt.Errorf("something went wrong during gathering of all application reliabilities: %w", err)
-				}
-
-				// computing reliability of the FMAIS with (optimized) ME-ERT-CORE
-				start1 := time.Now()
-				_, err = meErtCore.ComputeReliabilityOptimizedSimple()
-				duration1 := time.Since(start1)
-				if err != nil {
-					sm.PrettyPrintApplications().PrettyPrintLayers()
-					return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
-				}
-				// we know that it's going to be a positive number
-				timer1 += uint64(duration1.Microseconds()) // taking microseconds
-
-				// computing reliability of the FMAIS with (per definition) ME-ERT-CORE
-				start2 := time.Now()
-				_, err = meErtCore.ComputeReliabilityPerDefinition()
-				duration2 := time.Since(start2)
-				if err != nil {
-					sm.PrettyPrintApplications().PrettyPrintLayers()
-					return fmt.Errorf("something went wrong during the reliability computation (per optimized method): %w", err)
-				}
-				// we know that it's going to be a positive number
-				timer2 += uint64(duration2.Microseconds()) // taking microseconds
-			}
-			log.Printf("ME-ERT-CORE (optimized) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer1)/float64(numIterations), timer1, numIterations)
-			benchmarkedDataOptimized[depth][appNum][inst] = float64(timer1) / float64(numIterations)
-			log.Printf("ME-ERT-CORE (per definition) benchmarking: Benchmarked time is %v us, measured %v us in %d operations\n", float64(timer2)/float64(numIterations), timer2, numIterations)
-			benchmarkedData[depth][appNum][inst] = float64(timer2) / float64(numIterations)
 		}
 	}
 

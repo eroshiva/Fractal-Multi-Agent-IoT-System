@@ -31,10 +31,10 @@ bench-sm: build ## Benchmark the codebase in a classic way (measure time of the 
 
 bench-rm: build ## Benchmark the ME-ERT-CORE Reliability Model (both, per definition and optimized) in a classic way (measure time of the function execution)
 	./build/_output/fractal-mais --benchMeErtCORE --hardcoded
-	./build/_output/fractal-mais --benchMeErtCOREoptimized --maxNumInstances 26 --appNumber 100
+	./build/_output/fractal-mais --benchMeErtCOREoptimized --maxNumInstances 101 --appNumber 101
 
 bench-rm-optimized: build ## Benchmark the ME-ERT-CORE (optimized) Reliability Model in a classic way (measure time of the function execution)
-	./build/_output/fractal-mais --benchMeErtCOREoptimized --maxNumInstances 26 --appNumber 100
+	./build/_output/fractal-mais --benchMeErtCOREoptimized --maxNumInstances 101 --appNumber 101
 
 gobench: build install-gobenchdata ## Benchmark the codebase with gobench
 	go test -bench . -benchmem ./... -timeout 0m -benchtime=${BENCH_TIME} -count=10 | gobenchdata --json ./data/benchmarks.json

@@ -128,7 +128,7 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	}
 
 	if benchMeErtCOREoptimized {
-		err := benchmarking.BenchMeErtCoreOptimized(appNumber, maxNumInstances, docker, greyScale)
+		err := benchmarking.BenchMeErtCoreOptimized(maxNumInstances, appNumber, docker, greyScale)
 		if err != nil {
 			return err
 		}
