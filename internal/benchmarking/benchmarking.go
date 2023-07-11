@@ -335,7 +335,7 @@ func BenchMeErtCoreOptimized(maxInstNum, maxAppNum int, docker, greyScale bool) 
 	for depth := 2; depth <= maxDepth; depth++ {
 		benchmarkedData[depth] = make(map[int]map[int]float64, 0)
 		benchmarkedDataOptimized[depth] = make(map[int]map[int]float64, 0)
-		for appNum := 1; appNum <= maxAppNum; appNum += 5 {
+		for appNum := 6; appNum <= maxAppNum; appNum += 5 {
 			benchmarkedData[depth][appNum] = make(map[int]float64, 0)
 			benchmarkedDataOptimized[depth][appNum] = make(map[int]float64, 0)
 			for inst := 1; inst <= maxInstNum; inst += 5 {

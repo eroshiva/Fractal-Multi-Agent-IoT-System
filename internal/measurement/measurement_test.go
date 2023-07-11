@@ -280,3 +280,63 @@ func TestSmWideBench2(t *testing.T) {
 	assert.NilError(t, err)
 	t.Logf("Reliability computed with ME-ERT-CORE (per definition) is %v\n", meErtCore.Reliability)
 }
+
+func TestSmWideBench3(t *testing.T) {
+	deviation = 0.05
+
+	numApps := 6
+	app, appFailed := InitializeInputDataWide()
+
+	sm, err := systemmodel.CreateSystemModelWideBench(numApps, 6, 4)
+	assert.NilError(t, err)
+	assert.Equal(t, len(sm.Applications)-1, numApps)
+
+	meErtCore := meertcore.MeErtCore{
+		SystemModel: sm,
+		Reliability: 0.0,
+	}
+
+	err = UpdateReliabilities(meErtCore.SystemModel, 101, appFailed, app)
+	assert.NilError(t, err)
+
+	_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+	assert.NilError(t, err)
+
+	_, err = meErtCore.ComputeReliabilityOptimizedSimple()
+	assert.NilError(t, err)
+	t.Logf("Reliability computed with ME-ERT-CORE (optimized) is %v\n", meErtCore.Reliability)
+
+	_, err = meErtCore.ComputeReliabilityPerDefinition()
+	assert.NilError(t, err)
+	t.Logf("Reliability computed with ME-ERT-CORE (per definition) is %v\n", meErtCore.Reliability)
+}
+
+func TestSmWideBench4(t *testing.T) {
+	deviation = 0.05
+
+	numApps := 1
+	app, appFailed := InitializeInputDataWide()
+
+	sm, err := systemmodel.CreateSystemModelWideBench(numApps, 1, 3)
+	assert.NilError(t, err)
+	assert.Equal(t, len(sm.Applications)-1, numApps)
+
+	meErtCore := meertcore.MeErtCore{
+		SystemModel: sm,
+		Reliability: 0.0,
+	}
+
+	err = UpdateReliabilities(meErtCore.SystemModel, 101, appFailed, app)
+	assert.NilError(t, err)
+
+	_, err = meErtCore.SystemModel.GatherAllApplicationsReliabilities()
+	assert.NilError(t, err)
+
+	_, err = meErtCore.ComputeReliabilityOptimizedSimple()
+	assert.NilError(t, err)
+	t.Logf("Reliability computed with ME-ERT-CORE (optimized) is %v\n", meErtCore.Reliability)
+
+	_, err = meErtCore.ComputeReliabilityPerDefinition()
+	assert.NilError(t, err)
+	t.Logf("Reliability computed with ME-ERT-CORE (per definition) is %v\n", meErtCore.Reliability)
+}

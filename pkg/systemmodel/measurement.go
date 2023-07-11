@@ -289,11 +289,14 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 
 	// how many VIs do we need?
 	chunkVI := 5 // defining a maximum number of Apps hosted by one VI
-	viLastLayer := numApps / chunkVI
+	viLastLayer := numApps/chunkVI + 1
 
-	// attaching all apps to the last, 4th, layer
+	// attaching all apps to the last layer
 	viNum = viLastLayer
 	viNotLastLayer = viNum / viNumInst
+	if viNotLastLayer == 0 {
+		viNotLastLayer = 1
+	}
 
 	systemModel := &SystemModel{}
 	systemModel.InitializeSystemModel(numApps, depth)
@@ -310,6 +313,9 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 		layer2.InitializeLayer()
 		// all applications are attached to the Root instance, FMAIS
 		for i := 1; i <= numApps; i++ {
+			if i > numApps {
+				break
+			}
 			appName := "App#" + fmt.Sprintf("%d", i)
 			systemModel.CreateApplication(numAppInst, 1.0, appName)
 			// setting priorities for each application
@@ -344,6 +350,9 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 
 			// all applications are attached to the Root instance, FMAIS
 			for i := (j-1)*chunkVI + 1; i <= chunkVI+(j-1)*chunkVI; i++ {
+				if i > numApps {
+					break
+				}
 				appName := "App#" + fmt.Sprintf("%d", i)
 				systemModel.CreateApplication(numAppInst, 1.0, appName)
 				// setting priorities for each application
@@ -395,6 +404,9 @@ func CreateSystemModelWideBench(numApps, numAppInst, depth int) (*SystemModel, e
 
 				// all applications are attached to the Root instance, FMAIS
 				for i := (j-1)*chunkVI + 1; i <= chunkVI+(j-1)*chunkVI; i++ {
+					if i > numApps {
+						break
+					}
 					appName := "App#" + fmt.Sprintf("%d", i)
 					systemModel.CreateApplication(numAppInst, 1.0, appName)
 					// setting priorities for each application
