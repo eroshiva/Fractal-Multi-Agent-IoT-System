@@ -18,6 +18,7 @@ var appNumber int
 var iterations int
 var maxNumInstances int
 var genFig []string
+var genJointFig []string
 
 // The main entry point
 func main() {
@@ -51,9 +52,11 @@ func fractalMAIS() *cobra.Command {
 	cmd.PersistentFlags().IntVar(&appNumber, "appNumber", 100, "number of applications to be deployed")
 	cmd.PersistentFlags().IntVar(&maxNumInstances, "maxNumInstances", 100, "maximum number of instances to be deployed by application")
 	cmd.PersistentFlags().StringArrayVar(&genFig, "generateFigures", nil, "generates figures based on the provided benchmarked data")
+	cmd.PersistentFlags().StringArrayVar(&genJointFig, "generateJointFigure", nil, "generates joint figure based on the provided benchmarked data")
 	cmd.PersistentFlags().Bool("docker", false, "indicates that the benchmarking is done in Docker container")
 	cmd.PersistentFlags().Bool("greyScale", false, "indicates that the plotter should generate figures in grey scale")
 	cmd.PersistentFlags().Bool("runMeasurement", false, "runs measurement for FMAIS of Depth 2, 3 and 4")
+	cmd.PersistentFlags().Bool("meertcore", false, "To indicate to the plotter to draw reliability lines")
 	return cmd
 }
 
@@ -71,6 +74,7 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 	docker, _ := cmd.Flags().GetBool("docker")
 	greyScale, _ := cmd.Flags().GetBool("greyScale")
 	runMeasurement, _ := cmd.Flags().GetBool("runMeasurement")
+	meertcore, _ := cmd.Flags().GetBool("meertcore")
 
 	log.Printf("Starting fractal-mais\nExample: %v\nBenchmarking: %v\n"+
 		"Hardcoded: %v\nBenchmark Fractal MAIS: %v\nBenchmark ME-ERT-CORE: %v\n"+
@@ -143,6 +147,20 @@ func runFractalMAIS(cmd *cobra.Command, _ []string) error {
 
 	if genFig != nil {
 		err := draw.PlotFigures(greyScale, genFig...)
+		if err != nil {
+			return err
+		}
+	}
+
+	if genJointFig != nil && !meertcore {
+		err := draw.PlotJointFigure(greyScale, false, genJointFig...)
+		if err != nil {
+			return err
+		}
+	}
+
+	if genJointFig != nil && meertcore {
+		err := draw.PlotJointFigure(greyScale, true, genJointFig...)
 		if err != nil {
 			return err
 		}

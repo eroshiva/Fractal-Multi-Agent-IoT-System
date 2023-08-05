@@ -52,6 +52,26 @@ func importDataFromJSON(path, filename string) (map[int]map[int]map[int]float64,
 	return out, nil
 }
 
+// importDataFromJSONMeErtCore imports data from JSON file
+func importDataFromJSONMeErtCore(path, filename string) (map[int]float64, error) {
+	sourceFile, err := os.Open(path + filename + ".json")
+	if err != nil {
+		return nil, err
+	}
+
+	var out map[int]float64
+	if err := json.NewDecoder(sourceFile).Decode(&out); err != nil {
+		return nil, err
+	}
+
+	err = sourceFile.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
 // exportDataToCSV stores generated during benchmarking data to CVS file
 func exportDataToCSV(path, filename string, data map[int]map[int]map[int]float64, names ...string) error {
 
@@ -207,6 +227,28 @@ func ImportData(path, fileName string) (map[int]map[int]map[int]float64, error) 
 		// cutting out extension
 		fileName = strings.ReplaceAll(fileName, ".csv", "")
 		data, err = importDataFromCSV(path, fileName)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if len(data) == 0 {
+		return nil, fmt.Errorf("couldn't read file %v - either a bad descriptor, or"+
+			" unmatched extension (accepted only .csv and .json)\n", fileName)
+	}
+
+	return data, nil
+}
+
+// ImportDataMeErtCore function imports data from a file
+func ImportDataMeErtCore(path, fileName string) (map[int]float64, error) {
+
+	data := make(map[int]float64, 0)
+	var err error
+	if isJSON(fileName) {
+		// cutting out extension
+		fileName = strings.ReplaceAll(fileName, ".json", "")
+		data, err = importDataFromJSONMeErtCore(path, fileName)
 		if err != nil {
 			return nil, err
 		}

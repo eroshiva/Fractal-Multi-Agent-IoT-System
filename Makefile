@@ -44,6 +44,13 @@ gobench: build install-gobenchdata ## Benchmark the codebase with gobench
 generate-figures: build ## Generates figures based on the benchmarked data. It needs an exact name of the file carrying data!
 	./build/_output/fractal-mais --generateFigures benchmark_fmais_2023-03-26_01-59-08.json --generateFigures benchmark_meertcore_2023-04-04_21-14-18.csv
 
+generate-joint-figure: build ## Generates joint figure based on the benchmarked data. It needs an exact name of the file carrying data!
+	./build/_output/fractal-mais --generateJointFigure benchmark_meertcore_optimized_2023-08-05_07-50-20.json --generateJointFigure benchmark_meertcore_per_definition_2023-08-05_07-50-20.json
+
+generate-joint-reliability-figure: build ## Generates joint figure based on the benchmarked data. It needs an exact name of the file carrying data!
+	./build/_output/fractal-mais --meertcore --generateJointFigure me-ert-core_fmais_depth_2.json --generateJointFigure me-ert-core_fmais_depth_4.json
+
+
 linters-install: ## Install linters locally for verification
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin ${GOLANGCI_LINTERS_VERSION}
 

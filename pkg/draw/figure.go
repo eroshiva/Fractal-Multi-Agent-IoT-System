@@ -9,6 +9,7 @@ import (
 	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/plotutil"
 	"gonum.org/v1/plot/vg"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -397,8 +398,43 @@ func PlotMeasuredReliability(rels map[int]float64, apps, depth int, greyScale, w
 	return nil
 }
 
+// PlotMeasuredReliabilityJoint plots multiple reliability values obtained from measurement
+func PlotMeasuredReliabilityJoint(tc map[string]map[int]float64, apps, depth []int, greyScale bool) error {
+
+	linesFMAIS := make(map[string]plotter.XYs, 0)
+
+	// setting figure name
+	figureName := "Measured ME-ERT-CORE Reliability values"
+	fileName := "measurement_meertcore_joint"
+
+	// initializing structure for the Figure
+	figure := Draw{}
+	figure.InitializeDrawStruct().SetFigureName(figureName).SetOutputFileName(fileName).
+		SetXaxisName("Time [s]").SetYaxisName("Reliability [-]").
+		SetYmin(0).SetYmax(1)
+
+	i := 0
+	for key, rels := range tc {
+		// converting measured reliability to XY data
+		line, err := getLinesForReliability(rels, apps[i], depth[i])
+		if err != nil {
+			return err
+		}
+		linesFMAIS[key] = line[key]
+		i++
+	}
+
+	// plotting data
+	err := figure.plotMeasuredReliability(linesFMAIS, greyScale)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // plotMeasuredReliability function plots measured ME-ERT-CORE reliability values
-func (d *Draw) plotMeasuredReliability(line map[string]plotter.XYs, greyScale bool) error {
+func (d *Draw) plotMeasuredReliability(lines map[string]plotter.XYs, greyScale bool) error {
 
 	p := d.initializeAndSetPlotter(true, false)
 
@@ -406,7 +442,7 @@ func (d *Draw) plotMeasuredReliability(line map[string]plotter.XYs, greyScale bo
 	p.Add(plotter.NewGrid())
 
 	// adding plotters for gathered lines to the figure
-	err := AddScattersAndLines(p, greyScale, line)
+	err := AddScattersAndLines(p, greyScale, lines)
 	if err != nil {
 		return err
 	}
@@ -491,6 +527,132 @@ func PlotMeErtCoreCoefficients(rels map[int]float64, apps, depth int, greyScale,
 
 	// plotting data
 	err = figure.plotMeasuredReliability(line, greyScale)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PlotJointFigure function plots a figures for SystemModel for a provided data in file called fileName
+func PlotJointFigure(greyScale, meertcore bool, fileNames ...string) error {
+
+	if !meertcore {
+		dataArr := make(map[string]map[int]map[int]map[int]float64, len(fileNames))
+		var lastPrefix string
+
+		for _, fileName := range fileNames {
+			// ToDo - make a workaround with relative path..
+			// read the data first
+			data, err := storedata.ImportData("data/", fileName)
+			if err != nil {
+				return err
+			}
+
+			// cut out the file extension
+			name := strings.ReplaceAll(fileName, ".json", "")
+			name = strings.ReplaceAll(name, ".csv", "")
+			prefix := fmt.Sprintf("Generated %s", name)
+			if strings.Contains(strings.ToLower(name), "optimized") {
+				prefix = "ME-ERT-CORE (optimised)"
+			} else if strings.Contains(strings.ToLower(name), "definition") {
+				prefix = "ME-ERT-CORE (per definition)"
+			}
+			dataArr[prefix] = data
+			lastPrefix = prefix
+		}
+
+		// parse SystemModel data
+		_, apps, instances, err := systemmodel.GetSystemModelParameters(dataArr[lastPrefix])
+		if err != nil {
+			return err
+		}
+
+		// plot figures
+		err = PlotTimeComplexitiesJoint(dataArr, apps, instances, greyScale)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Printf("Reading files")
+		dataArr := make(map[string]map[int]float64, len(fileNames))
+		apps := make([]int, 0)
+		apps = append(apps, 2, 4)
+		// assuming that passing at input in exact same order like in the Makefile
+		i := 0
+		for _, fileName := range fileNames {
+			log.Printf("Iterating over %s", fileName)
+			// read the data first
+			// assuming only JSON files at input
+			data, err := storedata.ImportDataMeErtCore("data/", fileName)
+			if err != nil {
+				return err
+			}
+			log.Printf("Data are imported from %s", fileName)
+			key := fmt.Sprintf("FMAIS of depth %d with %d Apps", apps[i], apps[i])
+			dataArr[key] = data
+			i++
+		}
+
+		err := PlotMeasuredReliabilityJoint(dataArr, apps, apps, greyScale)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// PlotTimeComplexitiesJoint function plots time complexity curves for all input data files
+func PlotTimeComplexitiesJoint(tc map[string]map[int]map[int]map[int]float64, maxAppNumber int,
+	maxNumInstancesPerApp int, greyScale bool,
+) error {
+	// we need to extract and plot time complexity dependency on the number of apps and number of instances per apps
+
+	linesApp := make(map[string]plotter.XYs, 0)
+	linesInstApp := make(map[string]plotter.XYs, 0)
+
+	// gathering plotters first
+	for key, value := range tc {
+		// iterating over the amount of apps in the system
+		var appArr []int
+		for appNumber := 6; appNumber <= maxAppNumber; appNumber += 5 {
+			appArr = append(appArr, appNumber)
+		}
+		lines := getLinesForAppNumber(value, []int{4}, appArr, []int{26})
+		linesApp[key+" FMAIS of depth 4 with 26 instances per App"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(26)+" instances (per App)"]
+
+		lines = getLinesForAppNumber(value, []int{4}, appArr, []int{96})
+		linesApp[key+" FMAIS of depth 4 with 96 instances per App"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(96)+" instances (per App)"]
+
+		//////// plotting dependencies for instances per application
+		var instArr []int
+		for instNumber := 1; instNumber <= maxNumInstancesPerApp; instNumber += 5 {
+			instArr = append(instArr, instNumber)
+		}
+
+		lines = getLinesForInstances(value, []int{4}, []int{26}, instArr)
+		linesInstApp[key+" FMAIS of depth 4 with 26 Apps"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(26)+" Apps"]
+
+		lines = getLinesForInstances(value, []int{4}, []int{96}, instArr)
+		linesInstApp[key+" FMAIS of depth 4 with 96 Apps"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(96)+" Apps"]
+	}
+
+	// plotting time complexity dependency based on depth
+	depthFigure := Draw{}
+	depthFigure.InitializeDrawStruct()
+	depthFigure.SetOutputFileName("me-ert-core_time-complexity-comparison-apps-number").SetFigureName("ME-ERT-CORE time complexity (on the App number)").
+		SetYaxisName("Time [ms]").SetXaxisName("Apps number [-]")
+	err := depthFigure.plotTimeComplexity(linesApp, greyScale, false, false)
+	if err != nil {
+		return err
+	}
+
+	depthFigure1 := Draw{}
+	depthFigure1.InitializeDrawStruct()
+	depthFigure1.SetOutputFileName("me-ert-core_time-complexity-comparison-app-inst-number").SetFigureName("ME-ERT-CORE time complexity (on the instances per App)").
+		SetYaxisName("Time [ms]").SetXaxisName("Instances (per App) [-]")
+	err = depthFigure1.plotTimeComplexity(linesInstApp, greyScale, false, false)
 	if err != nil {
 		return err
 	}
