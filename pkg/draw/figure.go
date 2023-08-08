@@ -117,8 +117,8 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	// plotting time complexity dependency based on depth
 	depthFigure := Draw{}
 	depthFigure.InitializeDrawStruct()
-	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-26-inst").SetFigureName(figureName + "on the FMAIS depth").
-		SetYaxisName("Time [ms]").SetXaxisName("Depth [-]")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-26-inst").SetFigureName(figureName + "on the number of layers").
+		SetYaxisName("Time [ms]").SetXaxisName("Layers [-]")
 	var depthArr []int
 	for i := 1; i <= maxDepth; i++ {
 		depthArr = append(depthArr, i)
@@ -129,14 +129,14 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 		return err
 	}
 
-	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-56-inst").SetFigureName(figureName + "on the FMAIS depth")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-56-inst").SetFigureName(figureName + "on the number of layers")
 	lines = getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{56})
 	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
-	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-96-inst").SetFigureName(figureName + "on the FMAIS depth")
+	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-96-inst").SetFigureName(figureName + "on the number of layers")
 	lines = getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{96})
 	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
@@ -274,7 +274,7 @@ func getLinesForAppNumber(tc map[int]map[int]map[int]float64, depth []int, appNu
 				line = append(line, xy)
 			}
 			// this is to store graphs legend..
-			key := "FMAIS of depth " + strconv.Itoa(d) + " and " + strconv.Itoa(i) + " instances (per App)"
+			key := "FMAIS with " + strconv.Itoa(d) + " layers and " + strconv.Itoa(i) + " instances (per App)"
 			lines[key] = line
 		}
 	}
@@ -297,7 +297,7 @@ func getLinesForInstances(tc map[int]map[int]map[int]float64, depth []int, appNu
 				line = append(line, xy)
 			}
 			// this is to store graphs legend..
-			key := "FMAIS of depth " + strconv.Itoa(d) + " and " + strconv.Itoa(a) + " Apps"
+			key := "FMAIS with " + strconv.Itoa(d) + " layers and " + strconv.Itoa(a) + " Apps"
 			lines[key] = line
 		}
 	}
@@ -323,7 +323,7 @@ func getLinesForReliability(tc map[int]float64, apps, depth int) (map[string]plo
 		line = append(line, xy)
 	}
 
-	key := fmt.Sprintf("FMAIS of depth %d with %d Apps", depth, apps)
+	key := fmt.Sprintf("FMAIS with %d layers and with %d Apps", depth, apps)
 	lines[key] = line
 
 	return lines, nil
@@ -589,7 +589,7 @@ func PlotJointFigure(greyScale, meertcore bool, fileNames ...string) error {
 				return err
 			}
 			log.Printf("Data are imported from %s", fileName)
-			key := fmt.Sprintf("FMAIS of depth %d with %d Apps", apps[i], apps[i])
+			key := fmt.Sprintf("FMAIS with %d layers and with %d Apps", apps[i], apps[i])
 			dataArr[key] = data
 			i++
 		}
@@ -620,10 +620,10 @@ func PlotTimeComplexitiesJoint(tc map[string]map[int]map[int]map[int]float64, ma
 			appArr = append(appArr, appNumber)
 		}
 		lines := getLinesForAppNumber(value, []int{4}, appArr, []int{26})
-		linesApp[key+" FMAIS of depth 4 with 26 instances per App"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(26)+" instances (per App)"]
+		linesApp[key+" FMAIS with 4 layers and 26 instances per App"] = lines["FMAIS with "+strconv.Itoa(4)+" layers and "+strconv.Itoa(26)+" instances (per App)"]
 
 		lines = getLinesForAppNumber(value, []int{4}, appArr, []int{96})
-		linesApp[key+" FMAIS of depth 4 with 96 instances per App"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(96)+" instances (per App)"]
+		linesApp[key+" FMAIS with 4 layers and 96 instances per App"] = lines["FMAIS with "+strconv.Itoa(4)+" layers and "+strconv.Itoa(96)+" instances (per App)"]
 
 		//////// plotting dependencies for instances per application
 		var instArr []int
@@ -632,16 +632,16 @@ func PlotTimeComplexitiesJoint(tc map[string]map[int]map[int]map[int]float64, ma
 		}
 
 		lines = getLinesForInstances(value, []int{4}, []int{26}, instArr)
-		linesInstApp[key+" FMAIS of depth 4 with 26 Apps"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(26)+" Apps"]
+		linesInstApp[key+" FMAIS with 4 layers and 26 Apps"] = lines["FMAIS with "+strconv.Itoa(4)+" layers and "+strconv.Itoa(26)+" Apps"]
 
 		lines = getLinesForInstances(value, []int{4}, []int{96}, instArr)
-		linesInstApp[key+" FMAIS of depth 4 with 96 Apps"] = lines["FMAIS of depth "+strconv.Itoa(4)+" and "+strconv.Itoa(96)+" Apps"]
+		linesInstApp[key+" FMAIS with 4 layers and 96 Apps"] = lines["FMAIS with "+strconv.Itoa(4)+" layers and "+strconv.Itoa(96)+" Apps"]
 	}
 
 	// plotting time complexity dependency based on depth
 	depthFigure := Draw{}
 	depthFigure.InitializeDrawStruct()
-	depthFigure.SetOutputFileName("me-ert-core_time-complexity-comparison-apps-number").SetFigureName("ME-ERT-CORE time complexity (on the App number)").
+	depthFigure.SetOutputFileName("me-ert-core_time-complexity-comparison-apps-number").SetFigureName("ME-ERT-CORE time complexity dependency (on the Apps number)").
 		SetYaxisName("Time [ms]").SetXaxisName("Apps number [-]")
 	err := depthFigure.plotTimeComplexity(linesApp, greyScale, false, false)
 	if err != nil {
@@ -650,7 +650,7 @@ func PlotTimeComplexitiesJoint(tc map[string]map[int]map[int]map[int]float64, ma
 
 	depthFigure1 := Draw{}
 	depthFigure1.InitializeDrawStruct()
-	depthFigure1.SetOutputFileName("me-ert-core_time-complexity-comparison-app-inst-number").SetFigureName("ME-ERT-CORE time complexity (on the instances per App)").
+	depthFigure1.SetOutputFileName("me-ert-core_time-complexity-comparison-app-inst-number").SetFigureName("ME-ERT-CORE time complexity dependency (on the instances per App)").
 		SetYaxisName("Time [ms]").SetXaxisName("Instances (per App) [-]")
 	err = depthFigure1.plotTimeComplexity(linesInstApp, greyScale, false, false)
 	if err != nil {
