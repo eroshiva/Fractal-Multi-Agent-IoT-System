@@ -46,14 +46,29 @@ func (me *MeErtCore) ComputeReliabilityPerDefinition() (float64, error) {
 						}
 						app, okie := me.SystemModel.Applications[appName]
 						if !okie {
-							return 0, fmt.Errorf("couldn't extract application with a key %s", appName)
-						}
-						appInstancePriority, err := app.GetPriority()
-						if err != nil {
-							return 0, err
-						}
+							// try one more time
+							appNameOld, err := rel.GetAppName()
+							if err != nil {
+								return 0, err
+							}
+							app, okie2 := me.SystemModel.Applications[appNameOld]
+							if !okie2 {
+								return 0, fmt.Errorf("couldn't extract application with a key %s", appName)
+							}
+							appInstancePriority, err := app.GetPriority()
+							if err != nil {
+								return 0, err
+							}
 
-						instRel += reliability * priority * appInstancePriority
+							instRel += reliability * priority * appInstancePriority
+						} else {
+							appInstancePriority, err := app.GetPriority()
+							if err != nil {
+								return 0, err
+							}
+
+							instRel += reliability * priority * appInstancePriority
+						}
 					} else { // Treating the VI case
 						app, okie := me.SystemModel.Applications["VI"]
 						if !okie {

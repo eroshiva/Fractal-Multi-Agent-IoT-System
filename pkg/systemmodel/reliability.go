@@ -222,16 +222,19 @@ func (sm *SystemModel) SetInstancePrioritiesRandom() error {
 						return fmt.Errorf("no layer at level %d exists", i)
 					}
 					for _, inst := range layer.Instances {
-						appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + k[len(k)-1:] + "-"
-						if strings.HasPrefix(inst.Name, appNameForCurrentLayer) && inst.Type == App {
+						if instCount == 0 {
+							break
+						}
+						appNameForCurrentLayer, err := ComposeAppNamePrefix(k, i)
+						if err != nil {
+							return err
+						}
+						if strings.HasPrefix(inst.Name, appNameForCurrentLayer) {
 							rnd := rand.Float64() * priorSum
 							inst.SetPriority(rnd)
 							priorSum -= rnd
 							instCount--
 						}
-					}
-					if instCount == 0 {
-						break
 					}
 				}
 				if instCount != 0 {
@@ -305,15 +308,18 @@ func (sm *SystemModel) SetInstanceReliabilitiesRandom() error {
 							return fmt.Errorf("no layer at level %d exists", i)
 						}
 						for _, inst := range layer.Instances {
-							appNameForCurrentLayer := "App#" + strconv.Itoa(i) + "-" + k[len(k)-1:] + "-"
-							if strings.HasPrefix(inst.Name, appNameForCurrentLayer) && inst.Type == App {
+							if instCount == 0 {
+								break
+							}
+							appNameForCurrentLayer, err := ComposeAppNamePrefix(k, i)
+							if err != nil {
+								return err
+							}
+							if strings.HasPrefix(inst.Name, appNameForCurrentLayer) {
 								rnd := rand.Float64()
 								inst.SetReliability(rnd)
 								instCount--
 							}
-						}
-						if instCount == 0 {
-							break
 						}
 					}
 					if instCount != 0 {
