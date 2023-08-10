@@ -11,6 +11,7 @@ func TestGatherApplicationReliabilities(t *testing.T) {
 	t.Logf("System model is\n%v", systemModel)
 
 	systemModel.SetApplicationPrioritiesRandom()
+	systemModel.PrettyPrintApplications().PrettyPrintLayers()
 	err := systemModel.SetInstancePrioritiesRandom()
 	assert.NilError(t, err)
 	err = systemModel.SetInstanceReliabilitiesRandom()

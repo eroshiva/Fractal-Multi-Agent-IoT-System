@@ -201,9 +201,16 @@ func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel
 				}
 				for j := 1; j <= app.Rules; j++ {
 					appInstance := &Instance{}
-					name := appName + "-" + strconv.Itoa(j) + "-" + strconv.FormatInt(int64(currentLevel), 10)
+					var err error
+					name := ""
 					if strings.HasPrefix(appName, "VI") {
-						name = "VI#" + strconv.FormatUint(*viCount, 10) + "-" + strconv.Itoa(j) + "-" + strconv.FormatInt(int64(currentLevel), 10)
+						name = ComposeVIName(currentLevel, int64(*viCount))
+					} else {
+						name, err = ComposeAppName(appName, currentLevel, j)
+						if err != nil {
+							log.Fatalf("Couldn't compose instance name: %v", err)
+							return false, nil
+						}
 					}
 					appInstance.CreateInstance(name, tp)
 					i.AddRelation(appInstance)
@@ -218,6 +225,33 @@ func (i *Instance) DeployApplications(apps map[string]*Application, currentLevel
 	}
 
 	return viWasDeployed, updatedApps
+}
+
+// ComposeAppNamePrefix composes a name prefix (App#(layer number)-(app number)) for Application instance per convention
+func ComposeAppNamePrefix(appName string, currentLevel int) (string, error) {
+	idx := strings.Index(appName, "#")
+	if idx == -1 {
+		return "", fmt.Errorf("wrong App name - couldn't find '#' in %s", appName)
+	}
+	appNumber := appName[idx+1:]
+	name := "App#" + strconv.FormatInt(int64(currentLevel), 10) + "-" + appNumber + "-"
+	return name, nil
+}
+
+// ComposeAppName composes a name for Application instance per convention
+func ComposeAppName(appName string, currentLevel, instNumber int) (string, error) {
+	idx := strings.Index(appName, "#")
+	if idx == -1 {
+		return "", fmt.Errorf("wrong App name - couldn't find '#' in %s", appName)
+	}
+	appNumber := appName[idx+1:]
+	name := "App#" + strconv.FormatInt(int64(currentLevel), 10) + "-" + appNumber + "-" + strconv.Itoa(instNumber)
+	return name, nil
+}
+
+// ComposeVIName composes a name for VI instance per convention
+func ComposeVIName(currentLevel int, viCount int64) string {
+	return "VI#" + strconv.FormatInt(int64(currentLevel), 10) + "-" + strconv.FormatInt(viCount, 10)
 }
 
 // CreateLayer creates a layer of the SystemModel and updates the Applications list to reflect the current deployment state
