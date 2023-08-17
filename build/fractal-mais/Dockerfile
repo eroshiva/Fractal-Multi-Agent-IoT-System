@@ -25,6 +25,9 @@ RUN mkdir -p /fmais/data && mkdir -p /fmais/figures
 # building a small image
 FROM gcr.io/distroless/static-debian11
 
+# adding busybox to the image to enable data collection
+COPY --from=busybox:1.36.1-uclibc /bin/sh /bin/sh
+
 # Copy our static executable
 COPY --from=builder /fmais/build/_output/fractal-mais /usr/local/bin/fractal-mais
 COPY --from=builder /fmais/data /usr/local/bin/data
