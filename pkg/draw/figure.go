@@ -109,7 +109,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	//		- This will produce 9 curves
 	// 3) Time complexity of the System Model based on the number of instances deployed per application
 	//		- Fix the level of System Model to 2, 3 and 4
-	//		- Take into account system with 1, 26, 56 and 96 apps
+	//		- Take into account system with 26, 51, 76, and 96 apps
 	//		- This will produce 12 curves as well
 
 	figureName := prefix + " Time Complexity dependency "
@@ -123,21 +123,21 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	for i := 1; i <= maxDepth; i++ {
 		depthArr = append(depthArr, i)
 	}
-	lines := getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{26})
+	lines := getLinesForDepth(tc, depthArr, []int{26, 51, 76, 96}, []int{26})
 	err := depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-56-inst").SetFigureName(figureName + "on the number of layers")
-	lines = getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{56})
+	lines = getLinesForDepth(tc, depthArr, []int{26, 51, 76, 96}, []int{56})
 	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-96-inst").SetFigureName(figureName + "on the number of layers")
-	lines = getLinesForDepth(tc, depthArr, []int{1, 26, 51, 76, 96}, []int{96})
+	lines = getLinesForDepth(tc, depthArr, []int{26, 51, 76, 96}, []int{96})
 	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
 	if err != nil {
 		return err
@@ -145,7 +145,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 
 	//////// plotting dependencies for applications number
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-26-inst").SetFigureName(figureName + "on the App number").
-		SetYaxisName("Time [ms]").SetXaxisName("Apps number [-]")
+		SetYaxisName("Time [ms]").SetXaxisName("Number of Applications [-]")
 	// iterating over the amount of apps in the system
 	var appArr []int
 	for appNumber := 1; appNumber <= maxAppNumber; appNumber += 5 {
@@ -642,7 +642,7 @@ func PlotTimeComplexitiesJoint(tc map[string]map[int]map[int]map[int]float64, ma
 	depthFigure := Draw{}
 	depthFigure.InitializeDrawStruct()
 	depthFigure.SetOutputFileName("me-ert-core_time-complexity-comparison-apps-number").SetFigureName("ME-ERT-CORE time complexity dependency (on the Apps number)").
-		SetYaxisName("Time [ms]").SetXaxisName("Apps number [-]")
+		SetYaxisName("Time [ms]").SetXaxisName("Number of Applications [-]")
 	err := depthFigure.plotTimeComplexity(linesApp, greyScale, false, false)
 	if err != nil {
 		return err
