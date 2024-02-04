@@ -124,7 +124,7 @@ With these parameters the FMAIS generates a total number of instances, which is 
 
 
 ## Authors and acknowledgement
-> This research was funded by CTU in Prague, grant no. SGS21/161/OHK3/3T/13.
+> This research was funded by CTU in Prague, grant no. SGS21/161/OHK3/3T/13 and SGS24/XXX/OHK3/3T/13.
 
 **Ivan Eroshkin** received a BSc degree in electrical engineering from Czech Technical University in Prague, Czech Republic, in 2017, a MSc degree in electrical engineering from Czech Technical University in Prague, Czech Republic, in 2020 and a MSc degree in mobile computing systems from EURECOM, Sophia Antipolis, France, in 2020. He is currently pursuing a PhD degree in electrical engineering at Czech Technical University in Prague, Czech Republic.
 
