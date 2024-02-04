@@ -35,7 +35,7 @@ type Draw struct {
 // InitializeDrawStruct initializes a Draw structure
 func (d *Draw) InitializeDrawStruct() *Draw {
 	d.Rendered = false
-	d.gridOn = true // enabling grid by default
+	d.gridOn = false // enabling grid by default
 	d.SetOutputFileName("Default").SetFigureName("").SetXaxisName("").
 		SetYaxisName("").SetXLength(20 * vg.Inch).SetYLength(20 * vg.Inch)
 	return d

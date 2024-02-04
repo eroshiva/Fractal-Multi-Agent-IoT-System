@@ -41,6 +41,8 @@ gobench: build install-gobenchdata ## Benchmark the codebase with gobench
 	gobenchdata web generate ./data
 	cd data && gobenchdata web serve
 
+figures: generate-figures generate-joint-figure generate-joint-reliability-figure ## Generates all figures from the time complexity estimation and measurement
+
 generate-figures: build ## Generates figures based on the benchmarked data. It needs an exact name of the file carrying data!
 	./build/_output/fractal-mais --generateFigures benchmark_fmais_2023-03-26_01-59-08.json --generateFigures benchmark_meertcore_2023-04-04_21-14-18.csv
 
