@@ -122,21 +122,21 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 		depthArr = append(depthArr, i)
 	}
 	lines := getLinesForDepth(tc, depthArr, []int{26, 51, 76, 96}, []int{26})
-	err := depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	err := depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false, true, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-56-inst").SetFigureName(figureName + "on the number of layers")
 	lines = getLinesForDepth(tc, depthArr, []int{26, 51, 76, 96}, []int{56})
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false, true, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-depth-96-inst").SetFigureName(figureName + "on the number of layers")
 	lines = getLinesForDepth(tc, depthArr, []int{26, 51, 76, 96}, []int{96})
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false, true, false)
 	if err != nil {
 		return err
 	}
@@ -150,21 +150,21 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 		appArr = append(appArr, appNumber)
 	}
 	lines = getLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{26})
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true, false, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-56-inst").SetFigureName(figureName + "on the App number")
 	lines = getLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{56})
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true, false, false)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-apps-number-96-inst").SetFigureName(figureName + "on the App number")
 	lines = getLinesForAppNumber(tc, []int{2, 3, 4}, appArr, []int{96})
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, true, false, false)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-1-apps").SetFigureName(figureName + "on instances per App")
 	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{1}, instArr)
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false, false, true)
 	if err != nil {
 		return err
 	}
@@ -185,21 +185,21 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-26-apps").SetFigureName(figureName + "on instances per App").
 		SetYaxisName("Time [ms]").SetXaxisName("Instances (per App) [-]")
 	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{26}, instArr)
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false, false, true)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-56-apps").SetFigureName(figureName + "on instances per App")
 	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{56}, instArr)
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false, false, true)
 	if err != nil {
 		return err
 	}
 
 	depthFigure.SetOutputFileName(strings.ToLower(prefix) + "_time-complexity-instances-per-app-96-apps").SetFigureName(figureName + "on instances per App")
 	lines = getLinesForInstances(tc, []int{2, 3, 4}, []int{96}, instArr)
-	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false)
+	err = depthFigure.plotTimeComplexity(lines, greyScale, meertcore, false, false, true)
 	if err != nil {
 		return err
 	}
@@ -208,8 +208,8 @@ func PlotTimeComplexities(tc map[int]map[int]map[int]float64, maxDepth int, maxA
 }
 
 // plotTimeComplexity produces single figure representing a certain case
-func (d *Draw) plotTimeComplexity(lines map[string]plotter.XYs, greyScale, meertcore, appsNumberDep bool) error {
-	p := d.initializeAndSetPlotter(meertcore, appsNumberDep)
+func (d *Draw) plotTimeComplexity(lines map[string]plotter.XYs, greyScale, meertcore, appsNumberDep, layerDep, instancesDep bool) error {
+	p := d.initializeAndSetPlotter(meertcore, appsNumberDep, layerDep, instancesDep)
 
 	// adding grid to the figure
 	if d.gridOn {
@@ -430,7 +430,7 @@ func PlotMeasuredReliabilityJoint(tc map[string]map[int]float64, apps, depth []i
 
 // plotMeasuredReliability function plots measured ME-ERT-CORE reliability values
 func (d *Draw) plotMeasuredReliability(lines map[string]plotter.XYs, greyScale bool) error {
-	p := d.initializeAndSetPlotter(true, false)
+	p := d.initializeAndSetPlotter(true, false, false, false)
 
 	// adding grid to the figure
 	if d.gridOn {
@@ -457,7 +457,7 @@ func (d *Draw) plotMeasuredReliability(lines map[string]plotter.XYs, greyScale b
 }
 
 // initializeAndSetPlotter function initializes and sets default parameters to the figure
-func (d *Draw) initializeAndSetPlotter(meertcore, appsNumberDep bool) *plot.Plot {
+func (d *Draw) initializeAndSetPlotter(meertcore, appsNumberDep, layersDep, instancesDep bool) *plot.Plot {
 	p := plot.New()
 
 	// setting Figure name and its parameters
@@ -496,7 +496,17 @@ func (d *Draw) initializeAndSetPlotter(meertcore, appsNumberDep bool) *plot.Plot
 	if meertcore && appsNumberDep {
 		p.Legend.YOffs = -5 * vg.Inch // place a legend a bit down
 	}
-
+	if !meertcore && appsNumberDep {
+		p.Legend.YOffs = -10 * vg.Inch // place a legend a bit down
+		p.Legend.XOffs = 6 * vg.Centimeter
+	}
+	if meertcore && layersDep {
+		p.Legend.XOffs = 0.25 * vg.Centimeter
+		p.Legend.YOffs = -0.5 * vg.Inch
+	}
+	if meertcore && appsNumberDep && layersDep && instancesDep {
+		p.Legend.YOffs = -0.5 * vg.Inch
+	}
 	return p
 }
 
@@ -633,8 +643,8 @@ func PlotTimeComplexitiesJoint(tc map[string]map[int]map[int]map[int]float64, ma
 	depthFigure := Draw{}
 	depthFigure.InitializeDrawStruct()
 	depthFigure.SetOutputFileName("me-ert-core_time-complexity-comparison-apps-number").SetFigureName("ME-ERT-CORE Time Complexity\nDependency on the Apps number").
-		SetYaxisName("Time [ms]").SetXaxisName("Number of Applications [-]")
-	err := depthFigure.plotTimeComplexity(linesApp, greyScale, false, false)
+		SetYaxisName("Time [ms]").SetXaxisName("Number of Applications [-]").SetYmax(12)
+	err := depthFigure.plotTimeComplexity(linesApp, greyScale, true, true, true, true) // last 3 false is on purpose: to do not move the legend
 	if err != nil {
 		return err
 	}
@@ -643,7 +653,7 @@ func PlotTimeComplexitiesJoint(tc map[string]map[int]map[int]map[int]float64, ma
 	depthFigure1.InitializeDrawStruct()
 	depthFigure1.SetOutputFileName("me-ert-core_time-complexity-comparison-app-inst-number").SetFigureName("ME-ERT-CORE Time Complexity\nDependency on the instances per App").
 		SetYaxisName("Time [ms]").SetXaxisName("Instances (per App) [-]")
-	err = depthFigure1.plotTimeComplexity(linesInstApp, greyScale, false, false)
+	err = depthFigure1.plotTimeComplexity(linesInstApp, greyScale, false, false, false, false) // last 3 false is on purpose: to do not move the legend
 	if err != nil {
 		return err
 	}
