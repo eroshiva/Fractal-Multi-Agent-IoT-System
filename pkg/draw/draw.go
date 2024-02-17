@@ -285,12 +285,12 @@ func AddScattersAndLines(plt *plot.Plot, greyScale bool, vs ...interface{}) erro
 				if err != nil {
 					return err
 				}
-				if !greyScale {
-					sc.Color = plotutil.Color(i)
-				}
-				sc.Shape = plotutil.Shape(i)
-				sc.Radius = 1.5 * linewidth
-				ps = append(ps, sc)
+				//if !greyScale {
+				//	sc.Color = plotutil.Color(i)
+				//}
+				//sc.Shape = plotutil.Shape(i)
+				//sc.Radius = 1.5 * linewidth
+				//ps = append(ps, sc)
 
 				l, err := plotter.NewLine(val)
 				if err != nil {
