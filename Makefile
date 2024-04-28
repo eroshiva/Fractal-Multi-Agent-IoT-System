@@ -86,3 +86,22 @@ docker-measurement: image ## Runs measurement in a Docker container
 		-v ~/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/figures:/usr/local/bin/figures \
 		${DOCKER_REPOSITORY}fractal-mais-generator:${FMAIS_VERSION} --runMeasurement
 
+kind: image ## Builds and image and uploads to kind cluster
+	kind load docker-image ${DOCKER_REPOSITORY}fractal-mais-generator:${FMAIS_VERSION}
+
+helm-lint: ## Validates correctness of the helm charts
+	helm lint ./charts
+
+helm-render: ## Renders helm charts to check if all values are propagated correctly
+	helm template ./charts
+
+helm-check: ## Dry runs a helm charts to check if charts are deployable
+	helm install -n fractal-mais --dry-run fmais ./charts
+
+helm-deploy: ## Deploys Fractal MAIS in a running Kubernetes cluster and performs measurement
+	kubectl create namespace fractal-mais
+	helm install -n fractal-mais fmais ./charts
+
+helm-uninstall: ## Uninstalls deployed charts
+	helm uninstall -n fractal-mais fmais
+	kubectl delete namespace fractal-mais
