@@ -33,7 +33,10 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           args: [
-            "--runMeasurement"
+            "--runMeasurement",
+            "--benchmark",
+            "--hardcoded",
+            "--docker"
           ]
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}

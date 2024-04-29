@@ -87,10 +87,10 @@ autoscaling:
 volumes:
   - name: data
     hostPath:
-      path: /Users/ivaneroshkin/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/data
+      path: /home/eroshiva/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/data
   - name: figures
     hostPath:
-      path: /Users/ivaneroshkin/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/figures
+      path: /home/eroshiva/go/src/gitlab.fel.cvut.cz/eroshiva/fractal-multi-agent-system/figures
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
