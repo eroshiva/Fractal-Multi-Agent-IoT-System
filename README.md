@@ -1,6 +1,6 @@
 # Fractal Multi-Agent System
 This repository contains a codebase for benchmarking computational complexity of the Fractal Multi-Agent System (FMAIS) model
-and Multi-Environment Enhanced Real-Time Customer-Oriented Reliability Model (ME-ERT-CORE) published in IEEE Internet of Things Journal Special Issue on Prognostics and Health Management using the Internet of Things [[1]](https://ieeexplore.ieee.org/document/10525061).
+and Multi-Environment Enhanced Real-Time Customer-Oriented Reliability Model (ME-ERT-CORE) published in the IEEE Internet of Things Journal Special Issue on Prognostics and Health Management using the Internet of Things [[1]](https://ieeexplore.ieee.org/document/10525061).
 
 This repository also serves as a library for the future usage of these models. It also implements in Go a
 Enhanced Real-Time Customer-Oriented Reliability Model (ERT-CORE) presented in [[2]](https://ieeexplore.ieee.org/document/9663391).
