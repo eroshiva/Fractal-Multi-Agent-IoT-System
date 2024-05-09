@@ -1,9 +1,9 @@
 # Fractal Multi-Agent System
 This repository contains a codebase for benchmarking computational complexity of the Fractal Multi-Agent System (FMAIS) model
-and Multi-Environment Enhanced Real-Time Customer-Oriented Reliability Model (ME-ERT-CORE).
+and Multi-Environment Enhanced Real-Time Customer-Oriented Reliability Model (ME-ERT-CORE) published in the IEEE Internet of Things Journal Special Issue on Prognostics and Health Management using the Internet of Things [[1]](https://ieeexplore.ieee.org/document/10525061).
 
 This repository also serves as a library for the future usage of these models. It also implements in Go a
-Enhanced Real-Time Customer-Oriented Reliability Model (ERT-CORE) presented in [[1]](https://ieeexplore.ieee.org/document/9663391).
+Enhanced Real-Time Customer-Oriented Reliability Model (ERT-CORE) presented in [[2]](https://ieeexplore.ieee.org/document/9663391).
 
 > If you want to re-use this code, please kindly refer to this repository and mention all authors!
 
@@ -17,7 +17,7 @@ Following figure describes such system.
 
 ![FMAIS example](figures/Default14.png "An example of Fractal MAIS system")
 
-**Multi-Environment Enhanced Real-Time Customer-Oriented Reliability Model** (ME-ERT-CORE) is a next step in the ERT-CORE model evolution introduced in [[1]](https://ieeexplore.ieee.org/document/9663391).
+**Multi-Environment Enhanced Real-Time Customer-Oriented Reliability Model** (ME-ERT-CORE) is a next step in the ERT-CORE model evolution introduced in [[2]](https://ieeexplore.ieee.org/document/9663391).
 It has the same basement as ERT-CORE, which makes its time complexity linearly dependent on the growing number of applications in the system.
 ME-ERT-CORE unifies reliability estimation by allowing any reliability metrics at its input.
 
@@ -124,7 +124,7 @@ With these parameters the FMAIS generates a total number of instances, which is 
 
 
 ## Authors and acknowledgement
-> This research was funded by CTU in Prague, grant no. SGS21/161/OHK3/3T/13 and SGS24/XXX/OHK3/3T/13.
+> This research was funded by CTU in Prague, grant no. SGS21/161/OHK3/3T/13 and SGS24/139/OHK3/3T/13.
 
 **Ivan Eroshkin** received a BSc degree in electrical engineering from Czech Technical University in Prague, Czech Republic, in 2017, a MSc degree in electrical engineering from Czech Technical University in Prague, Czech Republic, in 2020 and a MSc degree in mobile computing systems from EURECOM, Sophia Antipolis, France, in 2020. He is currently pursuing a PhD degree in electrical engineering at Czech Technical University in Prague, Czech Republic.
 
@@ -145,7 +145,8 @@ From 2012, he has participated in Eureka founded projects AutoEPCIS and U-Health
 
 
 # References
-[[1]](https://ieeexplore.ieee.org/document/9663391) I. Eroshkin, L. Vojtech and M. Neruda, "Resource Efficient Real-Time Reliability Model for Multi-Agent IoT Systems," 
+[[1]](https://ieeexplore.ieee.org/document/10525061) I. Eroshkin, L. Vojtech and M. Neruda, "Fractal-Based N-Environment Multi-Agent IoT System Reliability," in IEEE Internet of Things Journal, doi: 10.1109/JIOT.2024.3398406.
+
+[[2]](https://ieeexplore.ieee.org/document/9663391) I. Eroshkin, L. Vojtech and M. Neruda, "Resource Efficient Real-Time Reliability Model for Multi-Agent IoT Systems," 
 in IEEE Access, vol. 10, pp. 2578-2590, 2022, doi: 10.1109/ACCESS.2021.3138931.
 
-[[2]]() **leave a reference to the upcoming publication here!!**
