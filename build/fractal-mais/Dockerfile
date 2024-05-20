@@ -2,7 +2,7 @@
 # https://github.com/onosproject/onos-e2t/blob/master/build/onos-e2t/Dockerfile
 
 # this is a minimal image, which needs git (and curl) to be installed
-FROM golang:1.20.5-alpine as builder
+FROM golang:1.22-alpine as builder
 
 # installing dependencies
 RUN apk add --update && apk add --update --no-cache make
@@ -23,7 +23,7 @@ RUN make ${MAKE_TARGET}
 RUN mkdir -p /fmais/data && mkdir -p /fmais/figures
 
 # building a small image
-FROM gcr.io/distroless/static-debian11
+FROM gcr.io/distroless/static-debian12
 
 # adding busybox to the image to enable data collection
 COPY --from=busybox:1.36.1-uclibc /bin/sh /bin/sh
