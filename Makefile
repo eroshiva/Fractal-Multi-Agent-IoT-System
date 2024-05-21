@@ -70,7 +70,7 @@ clean: ## Remove all the build artifacts
 	go clean -cache -testcache
 
 image: ## Builds a Docker image
-	docker build --platform linux/amd64 . -f build/fractal-mais/Dockerfile \
+	docker build . -f build/fractal-mais/Dockerfile \
 		-t ${DOCKER_REPOSITORY}fractal-mais-generator:${FMAIS_VERSION}
 
 docker-bench: image ## Benchmarks the whole codebase wrapped in a Docker container
